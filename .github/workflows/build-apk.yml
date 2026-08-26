@@ -1,4 +1,4 @@
-name: Build Android APK & Release
+name: Build CarHub Android APK & Release (Node.js 22)
 
 on:
   push:
@@ -17,10 +17,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install Frontend Dependencies
         working-directory: ./frontend
