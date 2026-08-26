@@ -192,6 +192,13 @@ function MainApp() {
     setShowAdminChat(true);
   };
 
+  const handleNavigateToCar = (car) => {
+    setActiveTab('buyer');
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('carhub_open_car_details', { detail: { carId: car.id || car._id } }));
+    }, 150);
+  };
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar
@@ -240,7 +247,11 @@ function MainApp() {
         targetCar={chatTargetCar}
       />
 
-      <AIChatbot />
+      <AIChatbot 
+        user={user}
+        onNavigateToCar={handleNavigateToCar}
+        onOpenAuth={handleOpenAuth}
+      />
     </div>
   );
 }

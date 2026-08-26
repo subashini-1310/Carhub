@@ -37,46 +37,209 @@ function runAIImageInspection(carData) {
 
 /**
  * AI Chatbot Response Engine: Answers car availability, SUV below 10 Lakhs, EMI, Rental rules, Booking status
+/**
+ * AI Chatbot Response Generator
+ * Resolves user search intent, brand matches, budget limits, powertrain preferences,
+ * and generates rich car cards and smart recommendations.
  */
 function generateAIChatbotResponse(userMessage, carList = []) {
-  const query = userMessage.toLowerCase();
-  
-  if (query.includes('suv') || query.includes('10 lakh') || query.includes('below 10')) {
+  const q = (userMessage || '').toLowerCase().trim();
+  const seedCars = require('./seedData');
+  const allCars = Array.isArray(carList) && carList.length > 0 ? carList : seedCars;
+
+  // Format car card object for response
+  const formatCar = (c, reason = '') => ({
+    id: c.id || c._id,
+    _id: c._id || c.id,
+    title: c.title,
+    brand: c.brand,
+    model: c.model,
+    year: c.year,
+    price: c.price || c.sellingPrice || c.sellerExpectedPrice || 0,
+    rentalPricePerDay: c.rentalPricePerDay || 0,
+    kmDriven: c.kmDriven || 0,
+    fuelType: c.fuelType || 'Petrol',
+    transmission: c.transmission || 'Automatic',
+    color: c.color || 'White',
+    bodyType: c.bodyType || 'SUV',
+    image: (c.images && c.images[0]) || c.image || 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600',
+    rating: c.rating || 4.8,
+    inspectionScore: c.aiInspection?.damageScore || 95,
+    status: c.status || 'for_sale',
+    recommendationReason: reason || (c.aiInspection?.damageScore ? `🛡️ 140+ Point Score: ${c.aiInspection.damageScore}/100` : '⭐ Certified Master Pick')
+  });
+
+  // 1. Check for specific brand queries (e.g. "show me the tata brand cars", "tata cars", "hyundai", "toyota", "bmw", "mahindra", "kia", "maruti", "honda")
+  const knownBrands = [
+    { key: 'tata', name: 'Tata' },
+    { key: 'hyundai', name: 'Hyundai' },
+    { key: 'toyota', name: 'Toyota' },
+    { key: 'mahindra', name: 'Mahindra' },
+    { key: 'kia', name: 'Kia' },
+    { key: 'bmw', name: 'BMW' },
+    { key: 'maruti', name: 'Maruti Suzuki' },
+    { key: 'suzuki', name: 'Maruti Suzuki' },
+    { key: 'honda', name: 'Honda' },
+    { key: 'volkswagen', name: 'Volkswagen' },
+    { key: 'skoda', name: 'Skoda' },
+    { key: 'mercedes', name: 'Mercedes-Benz' },
+    { key: 'audi', name: 'Audi' },
+    { key: 'mg', name: 'MG' }
+  ];
+
+  let matchedBrand = knownBrands.find(b => q.includes(b.key));
+
+  if (matchedBrand) {
+    const brandCars = allCars.filter(c => 
+      (c.brand && c.brand.toLowerCase().includes(matchedBrand.key)) ||
+      (c.title && c.title.toLowerCase().includes(matchedBrand.key))
+    );
+
+    const otherCars = allCars.filter(c => 
+      !(c.brand && c.brand.toLowerCase().includes(matchedBrand.key)) &&
+      !(c.title && c.title.toLowerCase().includes(matchedBrand.key))
+    );
+    const recommendations = otherCars.slice(0, 3).map(c => formatCar(c, '✨ Segment Alternative Pick'));
+
+    if (brandCars.length > 0) {
+      return {
+        text: `🚗 Found ${brandCars.length} certified ${matchedBrand.name} vehicle${brandCars.length > 1 ? 's' : ''} available on CarHub with 140+ point quality inspection and verified service records! Click any vehicle below to view full details on the Buyer portal:`,
+        cars: brandCars.map(c => formatCar(c, `🏆 140+ Point Score: ${c.aiInspection?.damageScore || 97}/100`)),
+        recommendations: recommendations,
+        quickReplies: [
+          `View ${brandCars[0].title}`,
+          `Calculate EMI for ${matchedBrand.name}`,
+          'Show All SUVs under ₹10L',
+          'Explore Rental Fleet',
+          'Contact Admin'
+        ]
+      };
+    } else {
+      return {
+        text: `We are currently acquiring new ${matchedBrand.name} vehicles directly from verified sellers. In the meantime, here are top certified alternatives with high inspection scores available right now:`,
+        cars: allCars.slice(0, 3).map(c => formatCar(c, '⭐ Top Alternative Pick')),
+        recommendations: allCars.slice(3, 6).map(c => formatCar(c, '💡 Value Recommendation')),
+        quickReplies: ['Show all available cars', 'Sell my Tata car', 'Contact Admin']
+      };
+    }
+  }
+
+  // 2. Budget / Price queries (e.g. "under 10 lakh", "below 15 lakhs", "cheap", "budget")
+  if (q.includes('10 lakh') || q.includes('under 10') || q.includes('below 10') || q.includes('budget') || q.includes('under 15') || q.includes('under 20') || q.includes('under 8') || q.includes('under 7') || q.includes('cheap')) {
+    let maxLimit = 1000000;
+    if (q.includes('15')) maxLimit = 1500000;
+    else if (q.includes('20')) maxLimit = 2000000;
+    else if (q.includes('8') || q.includes('7')) maxLimit = 850000;
+
+    const budgetCars = allCars.filter(c => (c.price || c.sellingPrice || 0) <= maxLimit);
+    const resultCars = (budgetCars.length > 0 ? budgetCars : allCars).slice(0, 4);
+
     return {
-      text: "Here are top certified SUVs under ₹10 Lakhs available at CarHub:",
-      cars: [
-        { title: 'Hyundai Creta SX 1.5', price: 920000, image: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600' },
-        { title: 'Kia Sonet GTX Plus', price: 790000, image: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=600' },
-        { title: 'Tata Nexon XZ Plus', price: 840000, image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600' }
-      ],
-      quickReplies: ['Calculate EMI for Creta', 'Book Test Drive', 'Check Rental Rates']
+      text: `💰 Here are our top certified cars within your budget (under ₹${(maxLimit / 100000).toFixed(0)} Lakhs). Each car includes 140+ point inspection report, 7-day money-back guarantee, and financing assistance:`,
+      cars: resultCars.map(c => formatCar(c, `🔥 Best Value under ₹${(maxLimit / 100000).toFixed(0)}L`)),
+      recommendations: allCars.filter(c => (c.price || 0) > maxLimit).slice(0, 2).map(c => formatCar(c, '💎 Premium Upgrade Option')),
+      quickReplies: ['Calculate EMI', 'Cars with lowest KM', 'Self-drive rental rates', 'Talk to Admin']
     };
   }
 
-  if (query.includes('emi') || query.includes('loan')) {
+  // 3. Body type queries (SUV, Sedan, 7 Seater, MUV, 4x4)
+  if (q.includes('suv') || q.includes('sedan') || q.includes('7 seater') || q.includes('muv') || q.includes('4x4') || q.includes('offroad') || q.includes('hatchback')) {
+    let targetType = 'suv';
+    if (q.includes('sedan')) targetType = 'sedan';
+    else if (q.includes('7 seater') || q.includes('muv')) targetType = 'muv';
+    else if (q.includes('4x4') || q.includes('offroad')) targetType = '4x4';
+    else if (q.includes('hatchback')) targetType = 'hatchback';
+
+    const typeCars = allCars.filter(c => 
+      (c.bodyType && c.bodyType.toLowerCase().includes(targetType)) ||
+      (c.title && c.title.toLowerCase().includes(targetType)) ||
+      (targetType === '4x4' && c.title && c.title.toLowerCase().includes('4x4')) ||
+      (targetType === 'muv' && (c.bodyType?.toLowerCase() === 'muv' || c.title?.toLowerCase().includes('innova') || c.title?.toLowerCase().includes('safari')))
+    );
+
+    const results = (typeCars.length > 0 ? typeCars : allCars).slice(0, 4);
     return {
-      text: "CarHub offers flexible EMI options starting at just 8.5% interest per annum! Use our built-in Loan EMI Calculator on any car page to customize down payment and tenure (1 to 7 years).",
-      quickReplies: ['Show cars under ₹10k EMI', 'Loan Eligibility Documents', 'Contact Financial Admin']
+      text: `🚙 Here are certified ${targetType.toUpperCase()} models available in our marketplace. Click to view complete inspection scores, 360 photos, and EMI breakdowns:`,
+      cars: results.map(c => formatCar(c, `✨ Top ${targetType.toUpperCase()} Pick`)),
+      recommendations: allCars.filter(c => !results.find(r => (r.id || r._id) === (c.id || c._id))).slice(0, 2).map(c => formatCar(c, '⭐ Alternative Match')),
+      quickReplies: ['Filter by Price', 'Automatic transmission only', 'Check Rental Rates', 'Book Test Drive']
     };
   }
 
-  if (query.includes('rent') || query.includes('rule') || query.includes('deposit')) {
+  // 4. Fuel & Transmission queries (Diesel, Petrol, Automatic, Electric/Hybrid)
+  if (q.includes('diesel') || q.includes('petrol') || q.includes('automatic') || q.includes('hybrid') || q.includes('electric') || q.includes('mileage')) {
+    let filterFn = () => true;
+    let label = 'Special Match';
+    if (q.includes('diesel')) {
+      filterFn = c => (c.fuelType || '').toLowerCase() === 'diesel';
+      label = '⛽ High-Torque Diesel Pick';
+    } else if (q.includes('hybrid') || q.includes('mileage')) {
+      filterFn = c => (c.fuelType || '').toLowerCase() === 'hybrid' || (c.title || '').toLowerCase().includes('hybrid');
+      label = '⚡ 28 kmpl Top Mileage Pick';
+    } else if (q.includes('automatic')) {
+      filterFn = c => (c.transmission || '').toLowerCase() === 'automatic';
+      label = '🕹️ Smooth Automatic Pick';
+    } else if (q.includes('petrol')) {
+      filterFn = c => (c.fuelType || '').toLowerCase() === 'petrol';
+      label = '🌿 Refined Petrol Pick';
+    }
+
+    const matched = allCars.filter(filterFn);
+    const results = (matched.length > 0 ? matched : allCars).slice(0, 4);
     return {
-      text: "CarHub Rental Policy Summary:\n1. Minimum age 21 with valid driving license.\n2. Unlimited KM on selected models.\n3. Zero security deposit for verified CarHub members.\n4. Cleaned & 140-point inspected cars guaranteed.",
-      quickReplies: ['Browse Rental Fleet', 'Rent Innova Crysta', 'Talk to Admin']
+      text: `⚡ Here are top matching certified vehicles based on your powertrain preferences:`,
+      cars: results.map(c => formatCar(c, label)),
+      recommendations: allCars.slice(0, 2).map(c => formatCar(c, '⭐ Popular Choice')),
+      quickReplies: ['Show Tata cars', 'Show SUVs under ₹10L', 'Calculate EMI', 'Talk to Admin']
     };
   }
 
-  if (query.includes('booking') || query.includes('status') || query.includes('inspection')) {
+  // 5. Rental / Self-Drive queries
+  if (q.includes('rent') || q.includes('rental') || q.includes('self drive') || q.includes('per day') || q.includes('hire') || q.includes('trip')) {
+    const rentalCars = allCars.filter(c => c.status === 'for_rent' || c.status === 'sale_and_rent' || (c.rentalPricePerDay && c.rentalPricePerDay > 0));
+    const results = (rentalCars.length > 0 ? rentalCars : allCars).slice(0, 4);
+
     return {
-      text: "You can track your inspection status or rental booking directly in your Dashboard under 'My Cars' or 'Rental History'. Admin updates status in real-time!",
-      quickReplies: ['Go to My Dashboard', 'Chat with Admin']
+      text: `🔑 CarHub Self-Drive Rental Fleet:\n• Zero security deposit for verified members\n• 140+ point sanitized vehicles with 24/7 roadside assistance\n• Flexible daily rates starting from ₹1,600/day. Here are top rental vehicles:`,
+      cars: results.map(c => formatCar(c, `🔑 ₹${(c.rentalPricePerDay || 2500).toLocaleString()}/day`)),
+      recommendations: allCars.slice(0, 2).map(c => formatCar(c, '🚗 Also Available to Buy')),
+      quickReplies: ['Rent Innova Crysta', 'Rent Mahindra Thar', 'Rental Rules & Deposit', 'Contact Rental Admin']
     };
   }
 
+  // 6. EMI & Loan Calculator
+  if (q.includes('emi') || q.includes('loan') || q.includes('finance') || q.includes('down payment') || q.includes('interest')) {
+    return {
+      text: `💳 CarHub Smart Financing & EMI Assistance:\n• Interest rates starting at 8.5% p.a.\n• Up to 90% on-road funding from top partner banks (HDFC, SBI, ICICI)\n• Flexible tenure from 12 to 84 months\n\nClick any car on the Buyer page to access the live interactive EMI Calculator!`,
+      cars: allCars.slice(0, 3).map(c => formatCar(c, `📊 Est. EMI: ₹${Math.round(((c.price || 900000) * 0.8 * 0.09) / 12 + ((c.price || 900000) * 0.8) / 60).toLocaleString()}/mo`)),
+      recommendations: allCars.slice(3, 5).map(c => formatCar(c, '⭐ Low Down-Payment Pick')),
+      quickReplies: ['Show Tata Nexon EMI', 'Show Creta EMI', 'Documents required for loan', 'Chat with Finance Admin']
+    };
+  }
+
+  // 7. Selling vehicle query
+  if (q.includes('sell') || q.includes('valuation') || q.includes('quote') || q.includes('doorstep') || q.includes('price for my car')) {
+    return {
+      text: `🏷️ Sell Your Vehicle to CarHub in 3 Simple Steps:\n1️⃣ Instant AI Valuation based on real-time market data.\n2️⃣ Free Doorstep 140+ Point Inspection.\n3️⃣ Instant bank payout within 30 minutes! CarHub buys directly with zero middleman commissions.`,
+      cars: allCars.slice(0, 2).map(c => formatCar(c, '💎 Recent Direct Buyout')),
+      recommendations: [],
+      quickReplies: ['Start Instant Car Valuation', 'Doorstep Inspection Details', 'Talk to Buyout Specialist']
+    };
+  }
+
+  // 8. General / Fallback Smart Overview
   return {
-    text: "Welcome to CarHub AI! I can assist you with finding certified cars, rental bookings, loan EMI details, and vehicle evaluation. How can I help you today?",
-    quickReplies: ['SUVs under ₹10 Lakhs', 'How Selling Works', 'Rental Policy', 'Contact Admin']
+    text: `👋 Hello! I am **CarHub AI Assistant**. I can help you search our live certified inventory, view 140+ point inspection scores, calculate EMIs, or book test drives!\n\nHere are our top trending certified recommendations today:`,
+    cars: allCars.slice(0, 4).map(c => formatCar(c, `⭐ 140+ Point Score: ${c.aiInspection?.damageScore || 97}/100`)),
+    recommendations: allCars.slice(4, 7).map(c => formatCar(c, '🔥 Best Value Pick')),
+    quickReplies: [
+      'Show me Tata brand cars',
+      'Show SUVs under ₹10 Lakhs',
+      'Show Hyundai & Toyota cars',
+      'Browse Self-Drive Rentals',
+      'Calculate Car Loan EMI',
+      'Contact Admin'
+    ]
   };
 }
 

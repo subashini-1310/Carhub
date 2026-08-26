@@ -105,7 +105,18 @@ const getCarById = async (req, res) => {
 const askAIChatbot = async (req, res) => {
   try {
     const { message } = req.body;
-    const activeCars = inMemoryCars.filter(c => !deletedCarIds.has(String(c.id)) && !deletedCarIds.has(String(c._id)));
+    let activeCars = [];
+    try {
+      const dbCars = await Car.find({ status: { $in: ['for_sale', 'for_rent', 'sale_and_rent', 'seller_posted'] } }).lean();
+      if (dbCars && dbCars.length > 0) {
+        activeCars = dbCars.filter(c => !deletedCarIds.has(String(c.id)) && !deletedCarIds.has(String(c._id)));
+      }
+    } catch (e) {}
+
+    if (activeCars.length === 0) {
+      activeCars = inMemoryCars.filter(c => !deletedCarIds.has(String(c.id)) && !deletedCarIds.has(String(c._id)));
+    }
+
     const aiRes = generateAIChatbotResponse(message, activeCars);
     return res.json(aiRes);
   } catch (error) {

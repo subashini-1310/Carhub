@@ -936,92 +936,201 @@ function _localPublishCar(carId, publishData) {
 
 // ── Client-side AI Chatbot engine (accurate, data-driven) ──
 function localChatbotResponse(message) {
-  const q = message.toLowerCase().trim();
+  const q = (message || '').toLowerCase().trim();
+  const allCars = getPublishedCars().length > 0 ? getPublishedCars() : mockSeedCars;
 
-  // Greeting
-  if (q.match(/^(hi|hello|hey|namaste|vanakkam)/)) {
+  const formatCar = (c, reason = '') => ({
+    id: c.id || c._id,
+    _id: c._id || c.id,
+    title: c.title,
+    brand: c.brand,
+    model: c.model,
+    year: c.year,
+    price: c.price || c.sellingPrice || c.sellerExpectedPrice || 0,
+    rentalPricePerDay: c.rentalPricePerDay || 0,
+    kmDriven: c.kmDriven || 0,
+    fuelType: c.fuelType || 'Petrol',
+    transmission: c.transmission || 'Automatic',
+    color: c.color || 'White',
+    bodyType: c.bodyType || 'SUV',
+    image: (c.images && c.images[0]) || c.image || 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600',
+    rating: c.rating || 4.8,
+    inspectionScore: c.aiInspection?.damageScore || 95,
+    status: c.status || 'for_sale',
+    recommendationReason: reason || (c.aiInspection?.damageScore ? `🛡️ 140+ Point Score: ${c.aiInspection.damageScore}/100` : '⭐ Certified Master Pick')
+  });
+
+  // 1. Check for specific brand queries
+  const knownBrands = [
+    { key: 'tata', name: 'Tata' },
+    { key: 'hyundai', name: 'Hyundai' },
+    { key: 'toyota', name: 'Toyota' },
+    { key: 'mahindra', name: 'Mahindra' },
+    { key: 'kia', name: 'Kia' },
+    { key: 'bmw', name: 'BMW' },
+    { key: 'maruti', name: 'Maruti Suzuki' },
+    { key: 'suzuki', name: 'Maruti Suzuki' },
+    { key: 'honda', name: 'Honda' },
+    { key: 'volkswagen', name: 'Volkswagen' },
+    { key: 'skoda', name: 'Skoda' },
+    { key: 'mercedes', name: 'Mercedes-Benz' },
+    { key: 'audi', name: 'Audi' },
+    { key: 'mg', name: 'MG' }
+  ];
+
+  let matchedBrand = knownBrands.find(b => q.includes(b.key));
+
+  if (matchedBrand) {
+    const brandCars = allCars.filter(c => 
+      (c.brand && c.brand.toLowerCase().includes(matchedBrand.key)) ||
+      (c.title && c.title.toLowerCase().includes(matchedBrand.key))
+    );
+
+    const otherCars = allCars.filter(c => 
+      !(c.brand && c.brand.toLowerCase().includes(matchedBrand.key)) &&
+      !(c.title && c.title.toLowerCase().includes(matchedBrand.key))
+    );
+    const recommendations = otherCars.slice(0, 3).map(c => formatCar(c, '✨ Segment Alternative Pick'));
+
+    if (brandCars.length > 0) {
+      return {
+        text: `🚗 Found ${brandCars.length} certified ${matchedBrand.name} vehicle${brandCars.length > 1 ? 's' : ''} available on CarHub with 140+ point quality inspection and verified service records! Click any vehicle below to view full details on the Buyer portal:`,
+        cars: brandCars.map(c => formatCar(c, `🏆 140+ Point Score: ${c.aiInspection?.damageScore || 97}/100`)),
+        recommendations: recommendations,
+        quickReplies: [
+          `View ${brandCars[0].title}`,
+          `Calculate EMI for ${matchedBrand.name}`,
+          'Show All SUVs under ₹10L',
+          'Explore Rental Fleet',
+          'Contact Admin'
+        ]
+      };
+    } else {
+      return {
+        text: `We are currently acquiring new ${matchedBrand.name} vehicles directly from verified sellers. In the meantime, here are top certified alternatives with high inspection scores available right now:`,
+        cars: allCars.slice(0, 3).map(c => formatCar(c, '⭐ Top Alternative Pick')),
+        recommendations: allCars.slice(3, 6).map(c => formatCar(c, '💡 Value Recommendation')),
+        quickReplies: ['Show all available cars', 'Sell my Tata car', 'Contact Admin']
+      };
+    }
+  }
+
+  // 2. Budget / Price queries
+  if (q.includes('10 lakh') || q.includes('under 10') || q.includes('below 10') || q.includes('budget') || q.includes('under 15') || q.includes('under 20') || q.includes('under 8') || q.includes('under 7') || q.includes('cheap')) {
+    let maxLimit = 1000000;
+    if (q.includes('15')) maxLimit = 1500000;
+    else if (q.includes('20')) maxLimit = 2000000;
+    else if (q.includes('8') || q.includes('7')) maxLimit = 850000;
+
+    const budgetCars = allCars.filter(c => (c.price || c.sellingPrice || 0) <= maxLimit);
+    const resultCars = (budgetCars.length > 0 ? budgetCars : allCars).slice(0, 4);
+
     return {
-      text: "Hello! Welcome to CarHub 🚗 I'm your AI Assistant. How can I help you today?",
-      quickReplies: ['View available cars', 'How to sell my car', 'Rental rules', 'Contact Admin']
+      text: `💰 Here are our top certified cars within your budget (under ₹${(maxLimit / 100000).toFixed(0)} Lakhs). Each car includes 140+ point inspection report, 7-day money-back guarantee, and financing assistance:`,
+      cars: resultCars.map(c => formatCar(c, `🔥 Best Value under ₹${(maxLimit / 100000).toFixed(0)}L`)),
+      recommendations: allCars.filter(c => (c.price || 0) > maxLimit).slice(0, 2).map(c => formatCar(c, '💎 Premium Upgrade Option')),
+      quickReplies: ['Calculate EMI', 'Cars with lowest KM', 'Self-drive rental rates', 'Talk to Admin']
     };
   }
 
-  // Available cars
-  if (q.includes('available') || q.includes('cars') || q.includes('show') || q.includes('list')) {
+  // 3. Body type queries (SUV, Sedan, 7 Seater, MUV, 4x4)
+  if (q.includes('suv') || q.includes('sedan') || q.includes('7 seater') || q.includes('muv') || q.includes('4x4') || q.includes('offroad') || q.includes('hatchback')) {
+    let targetType = 'suv';
+    if (q.includes('sedan')) targetType = 'sedan';
+    else if (q.includes('7 seater') || q.includes('muv')) targetType = 'muv';
+    else if (q.includes('4x4') || q.includes('offroad')) targetType = '4x4';
+    else if (q.includes('hatchback')) targetType = 'hatchback';
+
+    const typeCars = allCars.filter(c => 
+      (c.bodyType && c.bodyType.toLowerCase().includes(targetType)) ||
+      (c.title && c.title.toLowerCase().includes(targetType)) ||
+      (targetType === '4x4' && c.title && c.title.toLowerCase().includes('4x4')) ||
+      (targetType === 'muv' && (c.bodyType?.toLowerCase() === 'muv' || c.title?.toLowerCase().includes('innova') || c.title?.toLowerCase().includes('safari')))
+    );
+
+    const results = (typeCars.length > 0 ? typeCars : allCars).slice(0, 4);
     return {
-      text: "CarHub currently has certified pre-owned cars available for sale and rent. All vehicles are personally inspected by our Admin before listing. Go to 'Buy Cars' to browse the full inventory.",
-      quickReplies: ['How to buy a car', 'Rental options', 'Contact Admin']
+      text: `🚙 Here are certified ${targetType.toUpperCase()} models available in our marketplace. Click to view complete inspection scores, 360 photos, and EMI breakdowns:`,
+      cars: results.map(c => formatCar(c, `✨ Top ${targetType.toUpperCase()} Pick`)),
+      recommendations: allCars.filter(c => !results.find(r => (r.id || r._id) === (c.id || c._id))).slice(0, 2).map(c => formatCar(c, '⭐ Alternative Match')),
+      quickReplies: ['Filter by Price', 'Automatic transmission only', 'Check Rental Rates', 'Book Test Drive']
     };
   }
 
-  // How to sell
-  if (q.includes('sell') || q.includes('selling') || q.includes('submit') || q.includes('post')) {
+  // 4. Fuel & Transmission queries
+  if (q.includes('diesel') || q.includes('petrol') || q.includes('automatic') || q.includes('hybrid') || q.includes('electric') || q.includes('mileage')) {
+    let filterFn = () => true;
+    let label = 'Special Match';
+    if (q.includes('diesel')) {
+      filterFn = c => (c.fuelType || '').toLowerCase() === 'diesel';
+      label = '⛽ High-Torque Diesel Pick';
+    } else if (q.includes('hybrid') || q.includes('mileage')) {
+      filterFn = c => (c.fuelType || '').toLowerCase() === 'hybrid' || (c.title || '').toLowerCase().includes('hybrid');
+      label = '⚡ 28 kmpl Top Mileage Pick';
+    } else if (q.includes('automatic')) {
+      filterFn = c => (c.transmission || '').toLowerCase() === 'automatic';
+      label = '🕹️ Smooth Automatic Pick';
+    } else if (q.includes('petrol')) {
+      filterFn = c => (c.fuelType || '').toLowerCase() === 'petrol';
+      label = '🌿 Refined Petrol Pick';
+    }
+
+    const matched = allCars.filter(filterFn);
+    const results = (matched.length > 0 ? matched : allCars).slice(0, 4);
     return {
-      text: "To sell your car on CarHub:\n1️⃣ Log in as a Seller\n2️⃣ Click 'Post Vehicle for Inspection'\n3️⃣ Fill in your car details and image\n4️⃣ CarHub Admin will do a doorstep inspection\n5️⃣ If approved, admin buys the car and pays you directly\n\n⚠️ Your car is NEVER shown to buyers until admin inspects and purchases it.",
-      quickReplies: ['How much will I get?', 'Contact Admin', 'Rental rules']
+      text: `⚡ Here are top matching certified vehicles based on your powertrain preferences:`,
+      cars: results.map(c => formatCar(c, label)),
+      recommendations: allCars.slice(0, 2).map(c => formatCar(c, '⭐ Popular Choice')),
+      quickReplies: ['Show Tata cars', 'Show SUVs under ₹10L', 'Calculate EMI', 'Talk to Admin']
     };
   }
 
-  // Price / valuation
-  if (q.includes('price') || q.includes('how much') || q.includes('value') || q.includes('cost') || q.includes('rate')) {
+  // 5. Rental / Self-Drive queries
+  if (q.includes('rent') || q.includes('rental') || q.includes('self drive') || q.includes('per day') || q.includes('hire') || q.includes('trip')) {
+    const rentalCars = allCars.filter(c => c.status === 'for_rent' || c.status === 'sale_and_rent' || (c.rentalPricePerDay && c.rentalPricePerDay > 0));
+    const results = (rentalCars.length > 0 ? rentalCars : allCars).slice(0, 4);
+
     return {
-      text: "CarHub prices are set by our Admin based on:\n• Vehicle condition & KM driven\n• Market value at time of inspection\n• 140+ point certification check\n\nFor selling: you propose your expected price, and Admin will give you a fair counter-offer after in-person inspection. For rentals, rates vary by vehicle type.",
-      quickReplies: ['How to sell', 'Contact Admin for quote', 'View rental rates']
+      text: `🔑 CarHub Self-Drive Rental Fleet:\n• Zero security deposit for verified members\n• 140+ point sanitized vehicles with 24/7 roadside assistance\n• Flexible daily rates starting from ₹1,600/day. Here are top rental vehicles:`,
+      cars: results.map(c => formatCar(c, `🔑 ₹${(c.rentalPricePerDay || 2500).toLocaleString()}/day`)),
+      recommendations: allCars.slice(0, 2).map(c => formatCar(c, '🚗 Also Available to Buy')),
+      quickReplies: ['Rent Innova Crysta', 'Rent Mahindra Thar', 'Rental Rules & Deposit', 'Contact Rental Admin']
     };
   }
 
-  // Rental
-  if (q.includes('rent') || q.includes('rental') || q.includes('book') || q.includes('booking') || q.includes('hire')) {
+  // 6. EMI & Loan Calculator
+  if (q.includes('emi') || q.includes('loan') || q.includes('finance') || q.includes('down payment') || q.includes('interest')) {
     return {
-      text: "CarHub Rental Policy:\n🔑 Daily & weekly rentals available\n✅ All rental cars are 140-point inspected\n📍 Pickup from CarHub office location\n💰 Pay daily rate × number of days\n📞 Contact Admin to confirm booking details\n\nGo to 'Rentals' tab to see available cars and book instantly!",
-      quickReplies: ['View rental fleet', 'Contact Admin', 'How does pricing work']
+      text: `💳 CarHub Smart Financing & EMI Assistance:\n• Interest rates starting at 8.5% p.a.\n• Up to 90% on-road funding from top partner banks (HDFC, SBI, ICICI)\n• Flexible tenure from 12 to 84 months\n\nClick any car on the Buyer page to access the live interactive EMI Calculator!`,
+      cars: allCars.slice(0, 3).map(c => formatCar(c, `📊 Est. EMI: ₹${Math.round(((c.price || 900000) * 0.8 * 0.09) / 12 + ((c.price || 900000) * 0.8) / 60).toLocaleString()}/mo`)),
+      recommendations: allCars.slice(3, 5).map(c => formatCar(c, '⭐ Low Down-Payment Pick')),
+      quickReplies: ['Show Tata Nexon EMI', 'Show Creta EMI', 'Documents required for loan', 'Chat with Finance Admin']
     };
   }
 
-  // Contact admin
-  if (q.includes('contact') || q.includes('admin') || q.includes('chat') || q.includes('call') || q.includes('speak') || q.includes('talk')) {
+  // 7. Selling vehicle query
+  if (q.includes('sell') || q.includes('valuation') || q.includes('quote') || q.includes('doorstep') || q.includes('price for my car')) {
     return {
-      text: "You can contact CarHub Admin directly via the Chat button in the navbar (📩 'Chat Admin'). The admin chat supports:\n💬 Text messages\n📞 Audio call\n📹 Video call\n\nAll buyers, sellers, and renters can only communicate with Admin. Sellers and buyers do not interact directly.",
-      quickReplies: ['Open Admin Chat', 'How to sell', 'Rental rules']
+      text: `🏷️ Sell Your Vehicle to CarHub in 3 Simple Steps:\n1️⃣ Instant AI Valuation based on real-time market data.\n2️⃣ Free Doorstep 140+ Point Inspection.\n3️⃣ Instant bank payout within 30 minutes! CarHub buys directly with zero middleman commissions.`,
+      cars: allCars.slice(0, 2).map(c => formatCar(c, '💎 Recent Direct Buyout')),
+      recommendations: [],
+      quickReplies: ['Start Instant Car Valuation', 'Doorstep Inspection Details', 'Talk to Buyout Specialist']
     };
   }
 
-  // Inspection
-  if (q.includes('inspect') || q.includes('certified') || q.includes('quality') || q.includes('condition')) {
-    return {
-      text: "Every CarHub vehicle goes through a rigorous 140+ point inspection:\n🔍 Engine & transmission check\n🛞 Tyre & brake condition\n💧 Oil & coolant levels\n🎨 Paint & body assessment\n📋 Service history verification\n🔌 Electrical & AC systems\n\nOnly cars that pass all checks are listed on the marketplace.",
-      quickReplies: ['How to sell', 'View certified cars', 'Contact Admin']
-    };
-  }
-
-  // EMI / loan
-  if (q.includes('emi') || q.includes('loan') || q.includes('finance') || q.includes('equated')) {
-    return {
-      text: "Use our built-in EMI Calculator on any car listing!\n📊 Formula: EMI = P × r × (1+r)^n / ((1+r)^n - 1)\n• P = Principal (car price - down payment)\n• r = Monthly interest rate (typical: 9-12% p.a.)\n• n = Loan tenure in months (12-84 months)\n\nCarHub partners with leading banks for quick loan approvals. Contact Admin for financing assistance.",
-      quickReplies: ['Contact Admin for loan', 'View cars for sale']
-    };
-  }
-
-  // Buyer registration
-  if (q.includes('register') || q.includes('signup') || q.includes('sign up') || q.includes('account') || q.includes('create')) {
-    return {
-      text: "Creating a CarHub account is easy!\n1️⃣ Click 'Login / Signup' on the top right\n2️⃣ Select your role: Buyer, Seller, or Renter\n3️⃣ Enter your name, email, and password\n4️⃣ Start using CarHub immediately!\n\n🔐 Admin accounts require a special authorization key.",
-      quickReplies: ['I want to buy a car', 'I want to sell my car', 'I want to rent']
-    };
-  }
-
-  // Buyer asking to sell (role conflict)
-  if (q.includes('i am a buyer') || q.includes('can buyer sell') || q.includes('buyer sell')) {
-    return {
-      text: "⚠️ Buyers cannot sell cars through the Buyer portal. To sell a car, you need to:\n1️⃣ Logout from your current account\n2️⃣ Sign up or login as a Seller\n3️⃣ Post your car for inspection\n\nEach role (Buyer / Seller / Renter) has a separate account.",
-      quickReplies: ['How to sell my car', 'Contact Admin']
-    };
-  }
-
-  // Default fallback
+  // 8. General / Fallback Smart Overview
   return {
-    text: "I'm CarHub AI! I can help you with:\n• 🚗 Buying certified cars\n• 💰 Selling your vehicle\n• 🔑 Renting a car\n• 📋 Inspection process\n• 💳 EMI & loan info\n• 📞 Contacting Admin\n\nPlease ask me a specific question!",
-    quickReplies: ['How to buy', 'How to sell', 'Rental rules', 'Contact Admin']
+    text: `👋 Hello! I am **CarHub AI Assistant**. I can help you search our live certified inventory, view 140+ point inspection scores, calculate EMIs, or book test drives!\n\nHere are our top trending certified recommendations today:`,
+    cars: allCars.slice(0, 4).map(c => formatCar(c, `⭐ 140+ Point Score: ${c.aiInspection?.damageScore || 97}/100`)),
+    recommendations: allCars.slice(4, 7).map(c => formatCar(c, '🔥 Best Value Pick')),
+    quickReplies: [
+      'Show me Tata brand cars',
+      'Show SUVs under ₹10 Lakhs',
+      'Show Hyundai & Toyota cars',
+      'Browse Self-Drive Rentals',
+      'Calculate Car Loan EMI',
+      'Contact Admin'
+    ]
   };
 }
 
@@ -1035,7 +1144,7 @@ const mockSeedCars = [
     year: 2023,
     price: 1850000,
     originalPrice: 1900000,
-    priceDrop: true, // Admin set this
+    priceDrop: true,
     rentalPricePerDay: 3500,
     purchasePriceByAdmin: 1780000,
     kmDriven: 18500,
@@ -1109,5 +1218,55 @@ const mockSeedCars = [
     targetMarket: 'buyer',
     features: ['Ventilated Seats', 'Bose Audio', 'Subwoofer'],
     rating: 4.7
+  },
+  {
+    id: 'car-107',
+    title: 'Tata Nexon XZ Plus Diesel 2023',
+    brand: 'Tata',
+    model: 'Nexon',
+    year: 2023,
+    price: 840000,
+    originalPrice: 890000,
+    priceDrop: true,
+    rentalPricePerDay: 2000,
+    kmDriven: 15300,
+    fuelType: 'Diesel',
+    transmission: 'Manual',
+    color: 'Daytona Grey',
+    bodyType: 'SUV',
+    location: 'Chennai',
+    images: [
+      'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800'
+    ],
+    description: 'Top-selling 5-star GNCAP safety rated Tata Nexon XZ+ with electric sunroof, Harman sound system.',
+    status: 'sale_and_rent',
+    targetMarket: 'both',
+    features: ['5-Star GNCAP Safety', 'Electric Sunroof', 'Harman Audio'],
+    rating: 4.9
+  },
+  {
+    id: 'car-106',
+    title: 'Tata Safari XZA+ Dark Edition 2023',
+    brand: 'Tata',
+    model: 'Safari',
+    year: 2023,
+    price: 1950000,
+    originalPrice: 2050000,
+    priceDrop: true,
+    rentalPricePerDay: 3800,
+    kmDriven: 14200,
+    fuelType: 'Diesel',
+    transmission: 'Automatic',
+    color: 'Oberon Black',
+    bodyType: 'SUV',
+    location: 'Chennai',
+    images: [
+      'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800'
+    ],
+    description: 'Flagship 7-seater Tata Safari Dark Edition with panoramic sunroof, JBL 9 speaker audio, ventilated captain seats.',
+    status: 'sale_and_rent',
+    targetMarket: 'both',
+    features: ['Ventilated Captain Seats', 'JBL Audio', 'Panoramic Sunroof', 'ADAS Level 2'],
+    rating: 4.9
   }
 ];
