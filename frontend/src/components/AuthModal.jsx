@@ -190,9 +190,9 @@ export default function AuthModal({ isOpen, onClose, defaultRole = 'Buyer / Rent
       }
 
       if (isLogin) {
-        const res = await api.login(email.trim(), password, selectedRole);
+        const res = await api.login(email.trim(), password);
         loginUser(res.user, rememberMe);
-        onSuccessRole(res.user.role);
+        if (onSuccessRole) onSuccessRole(res.user.role);
         onClose();
       } else {
         if (!name || !name.trim()) {
@@ -252,58 +252,62 @@ export default function AuthModal({ isOpen, onClose, defaultRole = 'Buyer / Rent
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-            Select your account type to proceed
+            {isLogin ? 'Sign in with your email and password' : 'Fill in your details to create an account'}
           </p>
         </div>
 
-        {/* Role Selector Tabs (Only Customer Roles: Buyer / Renter and Seller) */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: '8px',
-          background: 'var(--bg-secondary)',
-          padding: '4px',
-          borderRadius: '12px',
-          marginBottom: '20px'
-        }}>
-          {['Buyer / Renter', 'Seller'].map(r => (
-            <button
-              key={r}
-              type="button"
-              onClick={() => {
-                setSelectedRole(r);
-                setError('');
-              }}
-              style={{
-                padding: '10px 4px',
-                borderRadius: '8px',
-                border: 'none',
-                fontSize: '0.82rem',
-                fontWeight: '700',
-                cursor: 'pointer',
-                background: selectedRole === r ? 'var(--accent-primary)' : 'transparent',
-                color: selectedRole === r ? '#fff' : 'var(--text-muted)',
-                transition: 'all 0.2s ease',
-                boxShadow: selectedRole === r ? '0 2px 8px rgba(59, 130, 246, 0.4)' : 'none'
-              }}
-            >
-              {r}
-            </button>
-          ))}
-        </div>
+        {/* Role Selector Tabs (Only displayed during Sign Up) */}
+        {!isLogin && (
+          <>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '8px',
+              background: 'var(--bg-secondary)',
+              padding: '4px',
+              borderRadius: '12px',
+              marginBottom: '16px'
+            }}>
+              {['Buyer / Renter', 'Seller'].map(r => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => {
+                    setSelectedRole(r);
+                    setError('');
+                  }}
+                  style={{
+                    padding: '10px 4px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    fontSize: '0.82rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    background: selectedRole === r ? 'var(--accent-primary)' : 'transparent',
+                    color: selectedRole === r ? '#fff' : 'var(--text-muted)',
+                    transition: 'all 0.2s ease',
+                    boxShadow: selectedRole === r ? '0 2px 8px rgba(59, 130, 246, 0.4)' : 'none'
+                  }}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
 
-        <div style={{
-          background: 'rgba(59, 130, 246, 0.08)',
-          border: '1px solid rgba(59, 130, 246, 0.2)',
-          borderRadius: '10px',
-          padding: '10px 14px',
-          marginBottom: '20px',
-          fontSize: '0.78rem',
-          color: 'var(--text-main)',
-          lineHeight: '1.4'
-        }}>
-          💡 <strong>{selectedRole}:</strong> {roleSentences[selectedRole]}
-        </div>
+            <div style={{
+              background: 'rgba(59, 130, 246, 0.08)',
+              border: '1px solid rgba(59, 130, 246, 0.2)',
+              borderRadius: '10px',
+              padding: '10px 14px',
+              marginBottom: '20px',
+              fontSize: '0.78rem',
+              color: 'var(--text-main)',
+              lineHeight: '1.4'
+            }}>
+              💡 <strong>{selectedRole}:</strong> {roleSentences[selectedRole]}
+            </div>
+          </>
+        )}
 
         {error && (
           <div style={{ 
@@ -334,6 +338,7 @@ export default function AuthModal({ isOpen, onClose, defaultRole = 'Buyer / Rent
                   placeholder="Rahul Sharma" 
                   value={name} 
                   onChange={e => setName(e.target.value)} 
+                  required
                   style={{ width: '100%', padding: '10px 12px 10px 38px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)', fontSize: '0.9rem' }} 
                 />
               </div>
@@ -346,7 +351,7 @@ export default function AuthModal({ isOpen, onClose, defaultRole = 'Buyer / Rent
               <Mail size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
               <input 
                 type="email" 
-                placeholder={selectedRole === 'Seller' ? 'seller@gmail.com' : 'buyer@gmail.com'}
+                placeholder="your.email@example.com"
                 value={email} 
                 onChange={e => setEmail(e.target.value)} 
                 required 
@@ -425,7 +430,7 @@ export default function AuthModal({ isOpen, onClose, defaultRole = 'Buyer / Rent
             disabled={loading}
             style={{ width: '100%', justifyContent: 'center', padding: '12px', marginTop: '4px' }}
           >
-            {loading ? 'Authenticating...' : isLogin ? `Login as ${selectedRole}` : `Sign Up as ${selectedRole}`}
+            {loading ? 'Authenticating...' : isLogin ? 'Sign In' : 'Create Account'}
           </button>
 
           {/* Google OAuth 2.0 Divider & Continue with Google Button */}

@@ -142,56 +142,37 @@ const purgeCarFromLocalCaches = (carId) => {
 };
 
 export const api = {
-  // ── AUTH ──────────────────────────────────────────────────
-  login: async (email, password, role) => {
+  // ── AUTH (Single Login for Everyone) ─────────────────────
+  login: async (email, password) => {
     // Try backend first
     try {
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, role })
+        body: JSON.stringify({ email, password })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Login failed');
       return data;
     } catch (e) {
-      // Re-throw if error was generated from an HTTP error response (e.g. 404, 401, 403)
       if (e.status || (e.message && !e.message.includes('fetch') && !e.message.includes('URL'))) {
         throw e;
       }
     }
 
-    // Offline fallback: multi-role email validation sequence
+    // Offline fallback: find account by email
     const users = getRegisteredUsers();
     const normalizedEmail = (email || '').trim().toLowerCase();
-    const targetRole = (role || 'Buyer / Renter').toLowerCase();
 
-    const isRoleMatch = (userRole, target) => {
-      const u = (userRole || '').toLowerCase();
-      const t = (target || 'buyer / renter').toLowerCase();
-      if ((u.includes('buyer') || u.includes('renter')) && (t.includes('buyer') || t.includes('renter'))) return true;
-      return u === t;
-    };
-
-    // Find account matching email AND role
-    const matchUser = users.find(u =>
-      u.email.toLowerCase() === normalizedEmail && isRoleMatch(u.role, targetRole)
-    );
+    const matchUser = users.find(u => u.email.toLowerCase() === normalizedEmail);
 
     if (!matchUser) {
-      // Check if registered under other roles
-      const existingOtherRoles = users.filter(u => u.email.toLowerCase() === normalizedEmail).map(u => u.role);
-      if (existingOtherRoles.length > 0) {
-        const unique = [...new Set(existingOtherRoles)].join(', ');
-        throw new Error(`This account is registered as a ${unique}. Please select the correct account type to proceed, or register as a ${role || 'Buyer / Renter'}.`);
-      }
-
-      throw new Error('User not found. Please register first.');
+      throw new Error('No account found with this email. Please register first.');
     }
 
     // Password Check
     if (matchUser.password !== password) {
-      throw new Error('Invalid credentials.');
+      throw new Error('Invalid email or password. Please check your credentials.');
     }
 
     return {
@@ -350,6 +331,36 @@ export const api = {
       .filter(isNotDeleted)
       .filter(c => (c.status === 'for_rent' || c.status === 'sale_and_rent') && (c.targetMarket === 'renter' || c.targetMarket === 'both') && !publishedIds.includes(String(c.id)));
     return [...seedForRent, ...published.filter(c => (c.status === 'for_rent' || c.status === 'sale_and_rent') && (c.targetMarket === 'renter' || c.targetMarket === 'both'))].filter(isNotDeleted);
+  },
+
+  // ── CAR DETAIL & RECOMMENDATIONS ─────────────────────────
+  getCarById: async (id) => {
+    try {
+      const res = await fetch(`${API_BASE}/cars/detail/${id}`);
+      if (res.ok) return await res.json();
+    } catch (e) {}
+    const cars = await api.getBuyerCars().catch(() => []);
+    return cars.find(c => String(c.id) === String(id) || String(c._id) === String(id)) || null;
+  },
+
+  getRecommendations: async (id) => {
+    try {
+      const res = await fetch(`${API_BASE}/cars/recommendations/${id}`);
+      if (res.ok) return await res.json();
+    } catch (e) {}
+    const cars = await api.getBuyerCars().catch(() => []);
+    const current = cars.find(c => String(c.id) === String(id) || String(c._id) === String(id));
+    if (!current) return cars.slice(0, 4);
+    const sameBrand = cars.filter(c => 
+      String(c.id || c._id) !== String(current.id || current._id) &&
+      c.brand && current.brand && c.brand.toLowerCase() === current.brand.toLowerCase()
+    );
+    if (sameBrand.length >= 3) return sameBrand.slice(0, 4);
+    const others = cars.filter(c => 
+      String(c.id || c._id) !== String(current.id || current._id) &&
+      !sameBrand.some(sb => String(sb.id || sb._id) === String(c.id || c._id))
+    );
+    return [...sameBrand, ...others].slice(0, 4);
   },
 
   // ── SELLER SUBMIT CAR ─────────────────────────────────────

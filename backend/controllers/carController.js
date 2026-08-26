@@ -168,10 +168,70 @@ const deleteCar = async (req, res) => {
   }
 };
 
+const getRecommendations = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let targetCar = null;
+    try {
+      targetCar = await Car.findOne({ $or: [{ _id: id }, { id }] }).lean();
+    } catch (e) {}
+
+    if (!targetCar) {
+      targetCar = inMemoryCars.find(c => String(c.id) === id || String(c._id) === id);
+    }
+
+    if (!targetCar) {
+      return res.status(404).json({ message: 'Car not found' });
+    }
+
+    const currentId = String(targetCar.id || targetCar._id);
+    const targetBrand = targetCar.brand || '';
+
+    // Fetch published buyer cars from MongoDB
+    let publishedCars = [];
+    try {
+      publishedCars = await Car.find({
+        status: { $in: ['for_sale', 'sale_and_rent'] },
+        targetMarket: { $in: ['buyer', 'both'] }
+      }).lean();
+    } catch (e) {}
+
+    if (publishedCars.length === 0) {
+      publishedCars = inMemoryCars.filter(c => 
+        (c.status === 'for_sale' || c.status === 'sale_and_rent') && 
+        (c.targetMarket === 'buyer' || c.targetMarket === 'both')
+      );
+    }
+
+    // Filter out current car and deleted cars
+    const validPool = publishedCars.filter(c => {
+      const cId = String(c.id || c._id);
+      return cId !== currentId && !deletedCarIds.has(cId);
+    });
+
+    // 1. Same brand recommendations
+    let sameBrand = validPool.filter(c => 
+      c.brand && targetBrand && c.brand.toLowerCase() === targetBrand.toLowerCase()
+    );
+
+    // 2. If fewer than 3, add similar price/bodyType cars from other brands
+    let recommendations = [...sameBrand];
+    if (recommendations.length < 4) {
+      const others = validPool.filter(c => !sameBrand.some(sb => String(sb.id || sb._id) === String(c.id || c._id)));
+      recommendations = [...recommendations, ...others.slice(0, 4 - recommendations.length)];
+    }
+
+    return res.json(recommendations.slice(0, 6));
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getCarsForBuyer,
   getCarsForRenter,
   getCarById,
+  getRecommendations,
   deleteCar,
   askAIChatbot,
   inMemoryCars,

@@ -18,7 +18,9 @@ const getUserNotifications = async (req, res) => {
     const { userId } = req.params;
     let list = [];
     try {
-      list = await Notification.find({ userId }).sort({ createdAt: -1 }).limit(20).lean();
+      list = await Notification.find({ 
+        $or: [{ userId }, { userId: 'all' }, { userId: 'usr-buyer' }] 
+      }).sort({ createdAt: -1 }).limit(30).lean();
     } catch (e) {
       list = [];
     }

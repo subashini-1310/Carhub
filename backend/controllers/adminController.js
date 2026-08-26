@@ -138,6 +138,42 @@ const purchaseAndPublishCar = async (req, res) => {
       ...(features         && { features })
     };
 
+    // ── Check for price reduction to generate Price Drop Notification ─────────
+    let existingCar = null;
+    try {
+      const conditions = [{ id: String(id) }];
+      if (mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === String(id)) {
+        conditions.push({ _id: new mongoose.Types.ObjectId(id) });
+      }
+      existingCar = await Car.findOne({ $or: conditions }).lean();
+    } catch (e) {}
+
+    if (!existingCar) {
+      existingCar = inMemoryCars.find(c => String(c.id) === id || String(c._id) === id);
+    }
+
+    const newSellingPrice = parseInt(sellingPrice);
+    if (newSellingPrice && existingCar && existingCar.price && newSellingPrice < existingCar.price) {
+      updateFields.priceDrop = true;
+      updateFields.originalPrice = existingCar.originalPrice || existingCar.price;
+      
+      // Store Price Drop Notification in MongoDB
+      try {
+        const Notification = require('../models/Notification');
+        await Notification.create({
+          userId: 'all',
+          title: '🔔 Price Drop Alert',
+          message: `Price dropped for ${existingCar.title || updateFields.title || 'Vehicle'} from ₹${existingCar.price.toLocaleString()} to ₹${newSellingPrice.toLocaleString()}!`,
+          type: 'price_drop',
+          carId: String(id),
+          actionUrl: '/buyer'
+        });
+        console.log(`[CarHub Notification] Price drop notification created for ${existingCar.title} in MongoDB.`);
+      } catch (notifErr) {
+        console.warn('[CarHub Price Drop Notification Notice]:', notifErr.message);
+      }
+    }
+
     // ── 1. Try to update in MongoDB (handles both _id and custom id field safely) ────
     let updatedCar = null;
     try {
@@ -184,6 +220,43 @@ const updateCarByAdmin = async (req, res) => {
     const { id } = req.params;
     const mongoose = require('mongoose');
 
+    const updatePayload = { ...req.body };
+
+    // Check for price reduction
+    let existingCar = null;
+    try {
+      const conditions = [{ id: String(id) }];
+      if (mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === String(id)) {
+        conditions.push({ _id: new mongoose.Types.ObjectId(id) });
+      }
+      existingCar = await Car.findOne({ $or: conditions }).lean();
+    } catch (e) {}
+
+    if (!existingCar) {
+      existingCar = inMemoryCars.find(c => String(c.id) === id || String(c._id) === id);
+    }
+
+    const newPrice = parseInt(updatePayload.price);
+    if (newPrice && existingCar && existingCar.price && newPrice < existingCar.price) {
+      updatePayload.priceDrop = true;
+      updatePayload.originalPrice = existingCar.originalPrice || existingCar.price;
+
+      try {
+        const Notification = require('../models/Notification');
+        await Notification.create({
+          userId: 'all',
+          title: '🔔 Price Drop Alert',
+          message: `Price dropped for ${existingCar.title || 'Vehicle'} from ₹${existingCar.price.toLocaleString()} to ₹${newPrice.toLocaleString()}!`,
+          type: 'price_drop',
+          carId: String(id),
+          actionUrl: '/buyer'
+        });
+        console.log(`[CarHub Notification] Price drop notification created for ${existingCar.title} in MongoDB.`);
+      } catch (notifErr) {
+        console.warn('[CarHub Price Drop Notification Notice]:', notifErr.message);
+      }
+    }
+
     let updatedCar = null;
     try {
       const conditions = [{ id: String(id) }];
@@ -192,7 +265,7 @@ const updateCarByAdmin = async (req, res) => {
       }
       updatedCar = await Car.findOneAndUpdate(
         { $or: conditions },
-        { $set: req.body },
+        { $set: updatePayload },
         { new: true }
       ).lean();
     } catch (e) {
@@ -201,7 +274,7 @@ const updateCarByAdmin = async (req, res) => {
 
     const memIdx = inMemoryCars.findIndex(c => String(c.id) === id || String(c._id) === id);
     if (memIdx !== -1) {
-      inMemoryCars[memIdx] = { ...inMemoryCars[memIdx], ...req.body };
+      inMemoryCars[memIdx] = { ...inMemoryCars[memIdx], ...updatePayload };
       if (!updatedCar) updatedCar = inMemoryCars[memIdx];
     }
 

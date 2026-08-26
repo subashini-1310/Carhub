@@ -37,6 +37,31 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('carhub_wishlist', JSON.stringify(wishlist));
   }, [wishlist]);
 
+  useEffect(() => {
+    const fetchDbNotifications = async () => {
+      try {
+        const userId = user?.id || user?._id || 'all';
+        const res = await fetch(`/api/notifications/${userId}`);
+        if (res.ok) {
+          const list = await res.json();
+          if (Array.isArray(list) && list.length > 0) {
+            setNotifications(list.map(n => ({
+              id: n.id || n._id,
+              title: n.title,
+              message: n.message,
+              type: n.type || 'info',
+              time: new Date(n.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            })));
+          }
+        }
+      } catch (e) {}
+    };
+
+    fetchDbNotifications();
+    const interval = setInterval(fetchDbNotifications, 8000);
+    return () => clearInterval(interval);
+  }, [user]);
+
   const loginUser = (userData, rememberMe = false) => {
     setUser(userData);
     setUnreadChatCount(0);

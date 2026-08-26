@@ -943,6 +943,112 @@ export default function BuyerDashboard({ onEnquireAdmin }) {
                 </div>
               </div>
 
+              {/* 6. Same-Brand Recommended Cars */}
+              {(() => {
+                const currentId = String(viewingCar.id || viewingCar._id);
+                const sameBrandCars = allCars.filter(c => 
+                  String(c.id || c._id) !== currentId &&
+                  c.brand && viewingCar.brand && c.brand.toLowerCase() === viewingCar.brand.toLowerCase()
+                );
+
+                let recs = [...sameBrandCars];
+                if (recs.length < 3) {
+                  const fallbackCars = allCars.filter(c => 
+                    String(c.id || c._id) !== currentId &&
+                    !sameBrandCars.some(sb => String(sb.id || sb._id) === String(c.id || c._id))
+                  );
+                  recs = [...recs, ...fallbackCars.slice(0, 3 - recs.length)];
+                }
+
+                if (recs.length === 0) return null;
+
+                return (
+                  <div style={{
+                    background: 'var(--bg-secondary)',
+                    padding: '20px',
+                    borderRadius: '16px',
+                    border: '1px solid var(--border-color)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                      <h4 style={{ fontSize: '1rem', fontWeight: '800', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Car size={18} color="var(--accent-primary)" />
+                        Recommended Cars ({viewingCar.brand} & Similar)
+                      </h4>
+                      <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                        {recs.length} certified options
+                      </span>
+                    </div>
+
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                      gap: '14px'
+                    }}>
+                      {recs.slice(0, 4).map(recCar => (
+                        <div
+                          key={recCar.id || recCar._id}
+                          onClick={() => {
+                            setViewingCar(recCar);
+                            setActivePhotoIndex(0);
+                          }}
+                          style={{
+                            background: 'var(--bg-primary)',
+                            borderRadius: '12px',
+                            border: '1px solid var(--border-color)',
+                            overflow: 'hidden',
+                            cursor: 'pointer',
+                            transition: 'transform 0.2s, box-shadow 0.2s',
+                            display: 'flex',
+                            flexDirection: 'column'
+                          }}
+                        >
+                          <div style={{ height: '120px', width: '100%', overflow: 'hidden', background: '#0f172a', position: 'relative' }}>
+                            <img
+                              src={recCar.images?.[0] || 'https://via.placeholder.com/300x150?text=Car'}
+                              alt={recCar.title}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                            {recCar.priceDrop && (
+                              <span style={{
+                                position: 'absolute',
+                                top: '6px',
+                                left: '6px',
+                                background: '#ef4444',
+                                color: '#fff',
+                                fontSize: '0.65rem',
+                                fontWeight: '800',
+                                padding: '2px 6px',
+                                borderRadius: '4px'
+                              }}>
+                                PRICE DROP
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ padding: '10px 12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                            <div>
+                              <div style={{ fontWeight: '800', fontSize: '0.88rem', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {recCar.title || `${recCar.brand} ${recCar.model}`}
+                              </div>
+                              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                <span>{recCar.year}</span> • <span>{recCar.fuelType}</span> • <span>{recCar.transmission}</span>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', paddingTop: '6px', borderTop: '1px solid var(--border-color)' }}>
+                              <span style={{ fontWeight: '800', fontSize: '0.92rem', color: 'var(--accent-primary)' }}>
+                                ₹{(recCar.price || 0).toLocaleString()}
+                              </span>
+                              <span style={{ fontSize: '0.72rem', color: 'var(--accent-primary)', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                View <Eye size={12} />
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
             </div>
 
             {/* Modal Footer Actions */}

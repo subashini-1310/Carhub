@@ -74,15 +74,14 @@ const register = async (req, res) => {
     let existingUser = null;
     try {
       existingUser = await User.findOne({ 
-        email: { $regex: new RegExp(`^${normalizedEmail}$`, 'i') },
-        role: { $regex: new RegExp(getRoleRegexPattern(selectedRole), 'i') }
+        email: { $regex: new RegExp(`^${normalizedEmail}$`, 'i') }
       });
     } catch (queryErr) {
       console.warn('[CarHub DB Find User Warning]', queryErr.message);
     }
 
     if (existingUser) {
-      return res.status(400).json({ message: `An account with this email is already registered as a ${existingUser.role}. Please log in.` });
+      return res.status(400).json({ message: `An account with this email is already registered. Please log in directly.` });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -134,14 +133,17 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    const { email, password } = req.body;
     
-    if (!email) {
-      return res.status(400).json({ message: 'Email is required.' });
+    if (!email || !email.trim()) {
+      return res.status(400).json({ message: 'Email address is required.' });
+    }
+
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required.' });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const targetRole = role || 'Buyer / Renter';
 
     await ensureDbConnection();
 
@@ -149,8 +151,7 @@ const login = async (req, res) => {
     let isDbUser = false;
     try {
       user = await User.findOne({ 
-        email: { $regex: new RegExp(`^${normalizedEmail}$`, 'i') },
-        role: { $regex: new RegExp(getRoleRegexPattern(targetRole), 'i') }
+        email: { $regex: new RegExp(`^${normalizedEmail}$`, 'i') }
       });
       if (user) isDbUser = true;
     } catch (e) {
@@ -159,33 +160,12 @@ const login = async (req, res) => {
 
     if (!user) {
       user = inMemoryUsers.find(
-        u => u.email.toLowerCase() === normalizedEmail && isMatchingRole(u.role, targetRole)
+        u => u.email.toLowerCase() === normalizedEmail
       );
     }
 
-    // REQUIREMENT: If no matching account for this email + role
     if (!user) {
-      let otherRoles = [];
-      try {
-        const dbOtherUsers = await User.find({ email: { $regex: new RegExp(`^${normalizedEmail}$`, 'i') } });
-        if (dbOtherUsers && dbOtherUsers.length > 0) {
-          otherRoles = dbOtherUsers.map(u => u.role);
-        }
-      } catch (e) {}
-
-      if (otherRoles.length === 0) {
-        const memOtherUsers = inMemoryUsers.filter(u => u.email.toLowerCase() === normalizedEmail);
-        otherRoles = memOtherUsers.map(u => u.role);
-      }
-
-      if (otherRoles.length > 0) {
-        const uniqueRoles = [...new Set(otherRoles)].join(', ');
-        return res.status(403).json({ 
-          message: `This account is registered as a ${uniqueRoles}. Please select the correct account type to proceed, or register as a ${targetRole}.` 
-        });
-      }
-
-      return res.status(404).json({ message: 'User not found. Please register first.' });
+      return res.status(404).json({ message: 'No account found with this email. Please register first.' });
     }
 
     // Password Verification Check
@@ -201,7 +181,7 @@ const login = async (req, res) => {
     }
 
     if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Invalid credentials.' });
+      return res.status(401).json({ message: 'Invalid email or password. Please check your credentials.' });
     }
 
     const token = jwt.sign(
@@ -267,8 +247,7 @@ const googleLogin = async (req, res) => {
     let user = null;
     try {
       user = await User.findOne({
-        email: { $regex: new RegExp(`^${normalizedEmail}$`, 'i') },
-        role: { $regex: new RegExp(getRoleRegexPattern(targetRole), 'i') }
+        email: { $regex: new RegExp(`^${normalizedEmail}$`, 'i') }
       });
 
       if (!user) {
@@ -276,7 +255,7 @@ const googleLogin = async (req, res) => {
           name: userName || normalizedEmail.split('@')[0],
           email: normalizedEmail,
           password: '',
-          role: targetRole,
+          role: (normalizedEmail === 'admin@carhub.com') ? 'Admin' : targetRole,
           city: 'Chennai',
           phone: '+91 9876543210',
           avatar: userAvatar || '',
