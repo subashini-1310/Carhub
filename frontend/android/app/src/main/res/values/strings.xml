@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CarHub</string>
+    <string name="title_activity_main">CarHub</string>
+    <string name="package_name">com.carhub.app</string>
+    <string name="custom_url_scheme">com.carhub.app</string>
+</resources>

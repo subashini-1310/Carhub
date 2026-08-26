@@ -1,0 +1,15 @@
+{
+  "appId": "com.carhub.app",
+  "appName": "CarHub",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#0f172a"
+    }
+  }
+}
