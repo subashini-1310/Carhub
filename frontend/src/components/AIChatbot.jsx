@@ -60,7 +60,6 @@ export default function AIChatbot({ user, onNavigateToCar, onOpenAuth }) {
         sender: 'bot',
         text: res.text,
         cars: res.cars,
-        recommendations: res.recommendations,
         quickReplies: res.quickReplies
       }]);
     } catch (e) {
@@ -322,41 +321,6 @@ export default function AIChatbot({ user, onNavigateToCar, onOpenAuth }) {
                   </div>
                 )}
 
-                {/* AI Smart Recommendations Section */}
-                {m.recommendations && m.recommendations.length > 0 && (
-                  <div style={{ 
-                    marginTop: '10px', 
-                    padding: '8px', 
-                    background: 'rgba(59, 130, 246, 0.06)', 
-                    borderRadius: '10px',
-                    border: '1px dashed rgba(59, 130, 246, 0.3)'
-                  }}>
-                    <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#60a5fa', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Sparkles size={12} /> AI Recommended Alternatives:
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {m.recommendations.map((rec, i) => (
-                        <div 
-                          key={i} 
-                          onClick={() => handleCarClick(rec)}
-                          style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'space-between', 
-                            padding: '4px 8px', 
-                            background: 'var(--bg-main)', 
-                            borderRadius: '6px', 
-                            cursor: 'pointer',
-                            fontSize: '0.74rem'
-                          }}
-                        >
-                          <span style={{ fontWeight: '700' }}>{rec.title}</span>
-                          <span style={{ color: '#10b981', fontWeight: '800' }}>₹{(rec.price || 0).toLocaleString()}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 {/* Quick Reply Chips */}
                 {m.quickReplies && (

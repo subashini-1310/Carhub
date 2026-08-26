@@ -142,32 +142,6 @@ export default function BuyerDashboard({ onEnquireAdmin }) {
     setActivePhotoIndex(0);
   }, [viewingCar]);
 
-  // ── AI Recommendations Generator ──────────────────────────────────────────
-  const aiRecommendations = useMemo(() => {
-    if (!allCars || allCars.length === 0) return [];
-    
-    return allCars
-      .map(c => {
-        let score = c.aiInspection?.damageScore || 92;
-        let badge = `🛡️ 140+ Score: ${score}/100`;
-        if (c.priceDrop) {
-          badge = '📉 Price Drop Deal';
-          score += 6;
-        } else if (c.kmDriven && c.kmDriven < 16000) {
-          badge = '⚡ Low KM Single Owner';
-          score += 4;
-        } else if ((c.brand || '').toLowerCase().includes('tata')) {
-          badge = '⭐ 5-Star GNCAP Safety';
-          score += 5;
-        } else if (c.rating && c.rating >= 4.9) {
-          badge = '🏆 Top Rated Master Pick';
-          score += 3;
-        }
-        return { ...c, aiScore: score, aiBadge: badge };
-      })
-      .sort((a, b) => b.aiScore - a.aiScore)
-      .slice(0, 4);
-  }, [allCars]);
 
   // ── Cascading / Dynamic Filter Option Generators ─────────────────────────
   const brandOptions = useMemo(() => {
@@ -369,108 +343,7 @@ export default function BuyerDashboard({ onEnquireAdmin }) {
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
 
-      {/* ── AI Smart Recommendations Section ─────────────────────────── */}
-      {activeTab === 'browse' && aiRecommendations.length > 0 && (
-        <div className="glass-panel" style={{ 
-          padding: 'clamp(14px, 3vw, 20px)', 
-          borderRadius: '18px', 
-          marginBottom: '20px',
-          background: 'linear-gradient(135deg, rgba(30, 58, 138, 0.15), rgba(15, 23, 42, 0.4))',
-          border: '1px solid rgba(59, 130, 246, 0.3)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', padding: '6px', borderRadius: '8px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Sparkles size={16} />
-              </div>
-              <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>AI Recommended For You</span>
-                  <span style={{ fontSize: '0.68rem', background: '#10b981', color: '#fff', padding: '2px 7px', borderRadius: '12px', fontWeight: '700' }}>
-                    Top Certified Picks
-                  </span>
-                </h3>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  Personalized based on 140+ inspection scores, safety ratings & verified price drops
-                </span>
-              </div>
-            </div>
-          </div>
 
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', 
-            gap: '14px' 
-          }}>
-            {aiRecommendations.map(c => (
-              <div 
-                key={c.id || c._id}
-                onClick={() => setViewingCar(c)}
-                style={{
-                  background: 'var(--bg-secondary)',
-                  borderRadius: '14px',
-                  border: '1px solid rgba(59, 130, 246, 0.25)',
-                  padding: '10px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.transform = 'translateY(-3px)';
-                  e.currentTarget.style.borderColor = '#3b82f6';
-                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(59, 130, 246, 0.2)';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.25)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                <div style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', height: '120px' }}>
-                  <img 
-                    src={(c.images && c.images[0]) || 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800'} 
-                    alt={c.title} 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    top: '8px',
-                    left: '8px',
-                    background: 'rgba(15, 23, 42, 0.85)',
-                    backdropFilter: 'blur(6px)',
-                    color: '#60a5fa',
-                    fontSize: '0.68rem',
-                    fontWeight: '800',
-                    padding: '3px 8px',
-                    borderRadius: '6px',
-                    border: '1px solid rgba(59, 130, 246, 0.3)'
-                  }}>
-                    {c.aiBadge}
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ fontWeight: '800', fontSize: '0.86rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {c.title}
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                    <span style={{ color: '#10b981', fontWeight: '800', fontSize: '0.9rem' }}>
-                      ₹{(c.price || 0).toLocaleString()}
-                    </span>
-                    <span style={{ fontSize: '0.72rem', color: '#3b82f6', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                      Inspect <Eye size={12} />
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* ── Multi-Parameter Filtering Bar ───────────────────────────────── */}
       {activeTab === 'browse' && (

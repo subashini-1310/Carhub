@@ -95,17 +95,10 @@ function generateAIChatbotResponse(userMessage, carList = []) {
       (c.title && c.title.toLowerCase().includes(matchedBrand.key))
     );
 
-    const otherCars = allCars.filter(c => 
-      !(c.brand && c.brand.toLowerCase().includes(matchedBrand.key)) &&
-      !(c.title && c.title.toLowerCase().includes(matchedBrand.key))
-    );
-    const recommendations = otherCars.slice(0, 3).map(c => formatCar(c, '✨ Segment Alternative Pick'));
-
     if (brandCars.length > 0) {
       return {
         text: `🚗 Found ${brandCars.length} certified ${matchedBrand.name} vehicle${brandCars.length > 1 ? 's' : ''} available on CarHub with 140+ point quality inspection and verified service records! Click any vehicle below to view full details on the Buyer portal:`,
         cars: brandCars.map(c => formatCar(c, `🏆 140+ Point Score: ${c.aiInspection?.damageScore || 97}/100`)),
-        recommendations: recommendations,
         quickReplies: [
           `View ${brandCars[0].title}`,
           `Calculate EMI for ${matchedBrand.name}`,
@@ -116,9 +109,8 @@ function generateAIChatbotResponse(userMessage, carList = []) {
       };
     } else {
       return {
-        text: `We are currently acquiring new ${matchedBrand.name} vehicles directly from verified sellers. In the meantime, here are top certified alternatives with high inspection scores available right now:`,
-        cars: allCars.slice(0, 3).map(c => formatCar(c, '⭐ Top Alternative Pick')),
-        recommendations: allCars.slice(3, 6).map(c => formatCar(c, '💡 Value Recommendation')),
+        text: `We are currently acquiring new ${matchedBrand.name} vehicles directly from verified sellers. In the meantime, here are top certified cars available right now:`,
+        cars: allCars.slice(0, 3).map(c => formatCar(c, '⭐ Certified Pick')),
         quickReplies: ['Show all available cars', 'Sell my Tata car', 'Contact Admin']
       };
     }
@@ -137,7 +129,6 @@ function generateAIChatbotResponse(userMessage, carList = []) {
     return {
       text: `💰 Here are our top certified cars within your budget (under ₹${(maxLimit / 100000).toFixed(0)} Lakhs). Each car includes 140+ point inspection report, 7-day money-back guarantee, and financing assistance:`,
       cars: resultCars.map(c => formatCar(c, `🔥 Best Value under ₹${(maxLimit / 100000).toFixed(0)}L`)),
-      recommendations: allCars.filter(c => (c.price || 0) > maxLimit).slice(0, 2).map(c => formatCar(c, '💎 Premium Upgrade Option')),
       quickReplies: ['Calculate EMI', 'Cars with lowest KM', 'Self-drive rental rates', 'Talk to Admin']
     };
   }
@@ -161,7 +152,6 @@ function generateAIChatbotResponse(userMessage, carList = []) {
     return {
       text: `🚙 Here are certified ${targetType.toUpperCase()} models available in our marketplace. Click to view complete inspection scores, 360 photos, and EMI breakdowns:`,
       cars: results.map(c => formatCar(c, `✨ Top ${targetType.toUpperCase()} Pick`)),
-      recommendations: allCars.filter(c => !results.find(r => (r.id || r._id) === (c.id || c._id))).slice(0, 2).map(c => formatCar(c, '⭐ Alternative Match')),
       quickReplies: ['Filter by Price', 'Automatic transmission only', 'Check Rental Rates', 'Book Test Drive']
     };
   }
@@ -189,7 +179,6 @@ function generateAIChatbotResponse(userMessage, carList = []) {
     return {
       text: `⚡ Here are top matching certified vehicles based on your powertrain preferences:`,
       cars: results.map(c => formatCar(c, label)),
-      recommendations: allCars.slice(0, 2).map(c => formatCar(c, '⭐ Popular Choice')),
       quickReplies: ['Show Tata cars', 'Show SUVs under ₹10L', 'Calculate EMI', 'Talk to Admin']
     };
   }
@@ -202,7 +191,6 @@ function generateAIChatbotResponse(userMessage, carList = []) {
     return {
       text: `🔑 CarHub Self-Drive Rental Fleet:\n• Zero security deposit for verified members\n• 140+ point sanitized vehicles with 24/7 roadside assistance\n• Flexible daily rates starting from ₹1,600/day. Here are top rental vehicles:`,
       cars: results.map(c => formatCar(c, `🔑 ₹${(c.rentalPricePerDay || 2500).toLocaleString()}/day`)),
-      recommendations: allCars.slice(0, 2).map(c => formatCar(c, '🚗 Also Available to Buy')),
       quickReplies: ['Rent Innova Crysta', 'Rent Mahindra Thar', 'Rental Rules & Deposit', 'Contact Rental Admin']
     };
   }
@@ -212,7 +200,6 @@ function generateAIChatbotResponse(userMessage, carList = []) {
     return {
       text: `💳 CarHub Smart Financing & EMI Assistance:\n• Interest rates starting at 8.5% p.a.\n• Up to 90% on-road funding from top partner banks (HDFC, SBI, ICICI)\n• Flexible tenure from 12 to 84 months\n\nClick any car on the Buyer page to access the live interactive EMI Calculator!`,
       cars: allCars.slice(0, 3).map(c => formatCar(c, `📊 Est. EMI: ₹${Math.round(((c.price || 900000) * 0.8 * 0.09) / 12 + ((c.price || 900000) * 0.8) / 60).toLocaleString()}/mo`)),
-      recommendations: allCars.slice(3, 5).map(c => formatCar(c, '⭐ Low Down-Payment Pick')),
       quickReplies: ['Show Tata Nexon EMI', 'Show Creta EMI', 'Documents required for loan', 'Chat with Finance Admin']
     };
   }
@@ -222,16 +209,14 @@ function generateAIChatbotResponse(userMessage, carList = []) {
     return {
       text: `🏷️ Sell Your Vehicle to CarHub in 3 Simple Steps:\n1️⃣ Instant AI Valuation based on real-time market data.\n2️⃣ Free Doorstep 140+ Point Inspection.\n3️⃣ Instant bank payout within 30 minutes! CarHub buys directly with zero middleman commissions.`,
       cars: allCars.slice(0, 2).map(c => formatCar(c, '💎 Recent Direct Buyout')),
-      recommendations: [],
       quickReplies: ['Start Instant Car Valuation', 'Doorstep Inspection Details', 'Talk to Buyout Specialist']
     };
   }
 
   // 8. General / Fallback Smart Overview
   return {
-    text: `👋 Hello! I am **CarHub AI Assistant**. I can help you search our live certified inventory, view 140+ point inspection scores, calculate EMIs, or book test drives!\n\nHere are our top trending certified recommendations today:`,
+    text: `👋 Hello! I am **CarHub AI Assistant**. I can help you search our live certified inventory, view 140+ point inspection scores, calculate EMIs, or book test drives!\n\nHere are our top trending certified cars available today:`,
     cars: allCars.slice(0, 4).map(c => formatCar(c, `⭐ 140+ Point Score: ${c.aiInspection?.damageScore || 97}/100`)),
-    recommendations: allCars.slice(4, 7).map(c => formatCar(c, '🔥 Best Value Pick')),
     quickReplies: [
       'Show me Tata brand cars',
       'Show SUVs under ₹10 Lakhs',
