@@ -125,7 +125,20 @@ const purgeCarFromLocalCaches = (carId) => {
   // Broadcast deletion event to update open tabs in real-time
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('carhub_car_deleted', { detail: { id: strId } }));
+    window.dispatchEvent(new CustomEvent('carhub_inventory_updated', { detail: { type: 'delete', id: strId } }));
   }
+
+  try {
+    localStorage.setItem('carhub_inventory_sync', `delete_${strId}_${Date.now()}`);
+  } catch (e) {}
+
+  try {
+    if (typeof BroadcastChannel !== 'undefined') {
+      const bc = new BroadcastChannel('carhub_sync_channel');
+      bc.postMessage({ type: 'delete', id: strId, timestamp: Date.now() });
+      bc.close();
+    }
+  } catch (e) {}
 };
 
 export const api = {
@@ -902,36 +915,86 @@ export const api = {
   }
 };
 
-// ── Local helper: publish a car from seller-posted to for_sale/for_rent ──
+// ── Universal helper: broadcast and synchronize car changes across all tabs and pages ──
+function broadcastInventoryChange(type, payload = {}) {
+  try {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('carhub_inventory_updated', { detail: { type, ...payload } }));
+      if (payload.id || payload.carId) {
+        window.dispatchEvent(new CustomEvent('carhub_car_updated', { detail: { id: payload.id || payload.carId, ...payload } }));
+      }
+    }
+  } catch (e) {}
+
+  try {
+    localStorage.setItem('carhub_inventory_sync', `${type}_${Date.now()}`);
+  } catch (e) {}
+
+  try {
+    if (typeof BroadcastChannel !== 'undefined') {
+      const bc = new BroadcastChannel('carhub_sync_channel');
+      bc.postMessage({ type, ...payload, timestamp: Date.now() });
+      bc.close();
+    }
+  } catch (e) {}
+}
+
+// ── Local helper: publish or edit a car across seller, buyer, and renter caches ──
 function _localPublishCar(carId, publishData) {
   const { targetMarket, sellingPrice, rentalPricePerDay, purchasePriceByAdmin } = publishData;
+  const carIdStr = String(carId);
 
   let statusMap = { buyer: 'for_sale', renter: 'for_rent', both: 'sale_and_rent' };
   const newStatus = statusMap[targetMarket] || 'for_sale';
 
-  // Update seller cars (mark as purchased)
+  // 1. Update or add in seller cars cache
   const sellerCars = getSellerCars();
-  const idx = sellerCars.findIndex(c => (c.id || c._id) === carId);
-  if (idx !== -1) {
-    const car = { ...sellerCars[idx] };
-    car.status = newStatus;
-    car.price = parseInt(sellingPrice);
-    car.rentalPricePerDay = parseInt(rentalPricePerDay);
-    car.purchasePriceByAdmin = parseInt(purchasePriceByAdmin);
-    car.priceDrop = false; // admin hasn't reduced it yet
-    sellerCars[idx] = car;
-    saveSellerCars(sellerCars);
+  const sIdx = sellerCars.findIndex(c => String(c.id || c._id) === carIdStr);
+  let updatedCar = null;
 
-    // Add to published cars so buyer/renter page shows it
-    const published = getPublishedCars();
-    const existingIdx = published.findIndex(c => (c.id || c._id) === carId);
-    if (existingIdx !== -1) {
-      published[existingIdx] = car;
-    } else {
-      published.unshift(car);
-    }
-    savePublishedCars(published);
+  if (sIdx !== -1) {
+    updatedCar = {
+      ...sellerCars[sIdx],
+      ...publishData,
+      status: newStatus,
+      price: parseInt(sellingPrice) || sellerCars[sIdx].price,
+      rentalPricePerDay: parseInt(rentalPricePerDay) || 0,
+      purchasePriceByAdmin: parseInt(purchasePriceByAdmin) || 0
+    };
+    sellerCars[sIdx] = updatedCar;
+    saveSellerCars(sellerCars);
   }
+
+  // 2. Update or add in published cars cache (for buyer/renter pages)
+  const published = getPublishedCars();
+  const pIdx = published.findIndex(c => String(c.id || c._id) === carIdStr);
+  if (pIdx !== -1) {
+    published[pIdx] = {
+      ...published[pIdx],
+      ...publishData,
+      status: newStatus,
+      price: parseInt(sellingPrice) || published[pIdx].price,
+      rentalPricePerDay: parseInt(rentalPricePerDay) || 0,
+      purchasePriceByAdmin: parseInt(purchasePriceByAdmin) || 0
+    };
+    if (!updatedCar) updatedCar = published[pIdx];
+  } else {
+    const newPubCar = {
+      ...(updatedCar || {}),
+      ...publishData,
+      id: carId,
+      status: newStatus,
+      price: parseInt(sellingPrice) || 800000,
+      rentalPricePerDay: parseInt(rentalPricePerDay) || 0,
+      purchasePriceByAdmin: parseInt(purchasePriceByAdmin) || 0
+    };
+    published.unshift(newPubCar);
+    if (!updatedCar) updatedCar = newPubCar;
+  }
+  savePublishedCars(published);
+
+  // 3. Broadcast change to all open pages and tabs
+  broadcastInventoryChange('publish_or_update', { carId, car: updatedCar, publishData });
 }
 
 // ── Client-side AI Chatbot engine (accurate, data-driven) ──

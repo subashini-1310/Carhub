@@ -89,14 +89,33 @@ const postCar = async (req, res) => {
 const getSellerCars = async (req, res) => {
   try {
     const { sellerId } = req.params;
-    let cars = [];
+    let mongoCars = [];
     try {
-      cars = await Car.find({ sellerId });
-    } catch (e) {
-      cars = inMemoryCars.filter(c => c.sellerId === sellerId || c.sellerId === 'seller1');
-    }
-    const filtered = cars.filter(c => !deletedCarIds.has(String(c.id)) && !deletedCarIds.has(String(c._id)));
-    return res.json(filtered);
+      const orConditions = [{ sellerId }];
+      if (sellerId) {
+        orConditions.push({ sellerEmail: sellerId });
+        orConditions.push({ ownerName: sellerId });
+      }
+      mongoCars = await Car.find({ $or: orConditions }).lean();
+    } catch (e) {}
+
+    const mongoIds = new Set();
+    mongoCars.forEach(c => {
+      mongoIds.add(String(c._id));
+      if (c.id) mongoIds.add(String(c.id));
+    });
+
+    const memCars = inMemoryCars.filter(c => 
+      (c.sellerId === sellerId || c.sellerEmail === sellerId || c.ownerName === sellerId || (sellerId === 'seller1' && !c.sellerId)) && 
+      !mongoIds.has(String(c._id)) && 
+      !mongoIds.has(String(c.id))
+    );
+
+    const merged = [...mongoCars, ...memCars].filter(c => 
+      !deletedCarIds.has(String(c.id)) && !deletedCarIds.has(String(c._id))
+    );
+
+    return res.json(merged);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

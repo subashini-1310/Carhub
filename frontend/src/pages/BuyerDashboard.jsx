@@ -85,8 +85,36 @@ export default function BuyerDashboard({ onEnquireAdmin }) {
       }
     };
 
+    const handleInventoryUpdated = () => {
+      fetchCars();
+    };
+
+    const handleStorageChange = (e) => {
+      if (e.key === 'carhub_inventory_sync' || e.key === 'carhub_published_cars' || e.key === 'carhub_deleted_car_ids') {
+        fetchCars();
+      }
+    };
+
+    let bc = null;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        bc = new BroadcastChannel('carhub_sync_channel');
+        bc.onmessage = () => fetchCars();
+      }
+    } catch (err) {}
+
     window.addEventListener('carhub_car_deleted', handleCarDeleted);
-    return () => window.removeEventListener('carhub_car_deleted', handleCarDeleted);
+    window.addEventListener('carhub_inventory_updated', handleInventoryUpdated);
+    window.addEventListener('carhub_car_updated', handleInventoryUpdated);
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('carhub_car_deleted', handleCarDeleted);
+      window.removeEventListener('carhub_inventory_updated', handleInventoryUpdated);
+      window.removeEventListener('carhub_car_updated', handleInventoryUpdated);
+      window.removeEventListener('storage', handleStorageChange);
+      if (bc) bc.close();
+    };
   }, []);
 
   // Live listener for opening specific car details from AI Chatbot or external links
