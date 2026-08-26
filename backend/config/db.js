@@ -1,11 +1,17 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
+
+// Configure public DNS servers to resolve MongoDB Atlas SRV records reliably
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+} catch (e) {}
 
 const connectDB = async () => {
   const connStr = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/carhub';
 
   // Listen to connection events
   mongoose.connection.on('connected', () => {
-    console.log(`[CarHub DB] MongoDB Connection Active: ${connStr}`);
+    console.log(`[CarHub DB] MongoDB Connection Active: ${connStr.replace(/\/\/([^:]+):([^@]+)@/, '//$1:****@')}`);
   });
 
   mongoose.connection.on('error', (err) => {
@@ -18,7 +24,7 @@ const connectDB = async () => {
 
   try {
     const conn = await mongoose.connect(connStr, {
-      serverSelectionTimeoutMS: 5000
+      serverSelectionTimeoutMS: 8000
     });
     console.log(`[CarHub DB] MongoDB Connected Successfully: ${conn.connection.host}`);
 
