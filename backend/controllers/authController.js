@@ -7,8 +7,9 @@ const bcrypt = require('bcryptjs');
 const ensureDbConnection = async () => {
   if (mongoose.connection.readyState !== 1) {
     try {
-      await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/carhub', {
-        serverSelectionTimeoutMS: 5000
+      const uri = process.env.MONGO_URI || 'mongodb://subashinisakthivel2020_db_user:iGsTZBMLo3cdOaTu@ac-5m2ilhz-shard-00-00.yl3ywei.mongodb.net:27017,ac-5m2ilhz-shard-00-01.yl3ywei.mongodb.net:27017,ac-5m2ilhz-shard-00-02.yl3ywei.mongodb.net:27017/carhub?ssl=true&replicaSet=atlas-j5cbg6-shard-0&authSource=admin&retryWrites=true&w=majority';
+      await mongoose.connect(uri, {
+        serverSelectionTimeoutMS: 10000
       });
       console.log('[CarHub DB] MongoDB Connection Restored.');
     } catch (err) {
