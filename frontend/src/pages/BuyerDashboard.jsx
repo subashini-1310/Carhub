@@ -57,6 +57,7 @@ export default function BuyerDashboard({ onEnquireAdmin }) {
   const [compareCars, setCompareCars] = useState([]);
   const [showCompareModal, setShowCompareModal] = useState(false);
   const [activeTab, setActiveTab] = useState('browse');
+  const [showFiltersMobile, setShowFiltersMobile] = useState(false);
 
   // ── Fetch eligible cars ──────────────────────────────────────────────────
   const fetchCars = async () => {
@@ -256,36 +257,36 @@ export default function BuyerDashboard({ onEnquireAdmin }) {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1380px', margin: '0 auto' }}>
+    <div style={{ padding: 'clamp(12px, 3vw, 20px)', maxWidth: '1380px', margin: '0 auto' }}>
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
-      <div className="glass-panel" style={{ padding: '24px', borderRadius: '20px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+      <div className="glass-panel" style={{ padding: 'clamp(16px, 3vw, 24px)', borderRadius: '20px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
         <div>
-          <h2 style={{ fontSize: '1.65rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span>🚗 Certified Buyer Marketplace</span>
-            <span style={{ fontSize: '0.75rem', background: '#3b82f6', color: '#fff', padding: '4px 10px', borderRadius: '20px', fontWeight: '700' }}>
+          <h2 style={{ fontSize: 'clamp(1.25rem, 3.5vw, 1.65rem)', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span>🚗 Certified Marketplace</span>
+            <span style={{ fontSize: '0.72rem', background: '#3b82f6', color: '#fff', padding: '3px 8px', borderRadius: '20px', fontWeight: '700' }}>
               140+ Inspected
             </span>
           </h2>
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.4 }}>
             Verified CarHub inventory · 100% Doorstep inspected · Zero direct seller risk · Direct Admin support
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <button onClick={fetchCars} className="btn-secondary" style={{ padding: '8px 14px', fontSize: '0.82rem' }} disabled={loading}>
-            <RefreshCw size={15} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', width: '100%', maxWidth: 'max-content' }}>
+          <button onClick={fetchCars} className="btn-secondary" style={{ padding: '7px 12px', fontSize: '0.8rem', minHeight: '36px' }} disabled={loading}>
+            <RefreshCw size={14} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
             {loading ? 'Refreshing…' : 'Refresh'}
           </button>
-          <button onClick={() => setActiveTab('browse')} className={activeTab === 'browse' ? 'btn-primary' : 'btn-secondary'}>
-            Browse Cars ({filteredCars.length})
+          <button onClick={() => setActiveTab('browse')} className={activeTab === 'browse' ? 'btn-primary' : 'btn-secondary'} style={{ padding: '7px 12px', fontSize: '0.8rem', minHeight: '36px' }}>
+            Browse ({filteredCars.length})
           </button>
-          <button onClick={() => setActiveTab('wishlist')} className={activeTab === 'wishlist' ? 'btn-primary' : 'btn-secondary'}>
-            <Heart size={16} color="#ef4444" /> Wishlist ({wishlist.length})
+          <button onClick={() => setActiveTab('wishlist')} className={activeTab === 'wishlist' ? 'btn-primary' : 'btn-secondary'} style={{ padding: '7px 12px', fontSize: '0.8rem', minHeight: '36px' }}>
+            <Heart size={14} color="#ef4444" /> Wishlist ({wishlist.length})
           </button>
           {compareCars.length > 0 && (
-            <button onClick={() => setShowCompareModal(true)} className="btn-primary" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-              <Layers size={16} /> Compare ({compareCars.length})
+            <button onClick={() => setShowCompareModal(true)} className="btn-primary" style={{ background: 'linear-gradient(135deg, #10b981, #059669)', padding: '7px 12px', fontSize: '0.8rem', minHeight: '36px' }}>
+              <Layers size={14} /> Compare ({compareCars.length})
             </button>
           )}
         </div>
@@ -295,40 +296,52 @@ export default function BuyerDashboard({ onEnquireAdmin }) {
 
       {/* ── Multi-Parameter Filtering Bar ───────────────────────────────── */}
       {activeTab === 'browse' && (
-        <div className="glass-panel" style={{ padding: '22px', borderRadius: '18px', marginBottom: '26px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem', fontWeight: '800' }}>
-              <SlidersHorizontal size={19} color="#3b82f6" />
+        <div className="glass-panel" style={{ padding: 'clamp(14px, 3vw, 22px)', borderRadius: '18px', marginBottom: '22px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem', fontWeight: '800' }}>
+              <SlidersHorizontal size={18} color="#3b82f6" />
               <span>Multi-Parameter Filters</span>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '600' }}>
-                ({filteredCars.length} matches found)
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+                ({filteredCars.length} matches)
               </span>
             </div>
             {anyFilterActive && (
-              <button onClick={resetFilters} className="btn-secondary" style={{ padding: '6px 14px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)' }}>
-                <X size={14} /> Reset All Filters
+              <button onClick={resetFilters} className="btn-secondary" style={{ padding: '5px 10px', fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)', minHeight: '32px' }}>
+                <X size={13} /> Reset All
               </button>
             )}
           </div>
 
           {/* Search bar */}
-          <div style={{ marginBottom: '16px', position: 'relative' }}>
+          <div style={{ marginBottom: '12px', position: 'relative' }}>
             <input
               type="text"
-              placeholder="Search by brand, model, features, or certified description…"
+              placeholder="Search brand, model, features…"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              style={{ ...selectStyle, paddingLeft: '40px', padding: '11px 14px 11px 40px', fontSize: '0.9rem' }}
+              style={{ ...selectStyle, paddingLeft: '38px', padding: '10px 14px 10px 38px', fontSize: '0.88rem' }}
             />
-            <span style={{ position: 'absolute', left: '13px', top: '11px', color: 'var(--text-muted)', fontSize: '16px' }}>🔍</span>
+            <span style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--text-muted)', fontSize: '15px' }}>🔍</span>
+          </div>
+
+          {/* Mobile Filters Toggle Button */}
+          <div className="mobile-only" style={{ marginBottom: '12px' }}>
+            <button 
+              onClick={() => setShowFiltersMobile(!showFiltersMobile)}
+              className="btn-secondary"
+              style={{ width: '100%', justifyContent: 'center', minHeight: '40px', fontSize: '0.84rem' }}
+            >
+              <SlidersHorizontal size={15} color="#3b82f6" />
+              {showFiltersMobile ? 'Hide Filters' : `Show All 9 Filters ${anyFilterActive ? '(Active)' : ''}`}
+            </button>
           </div>
 
           {/* 9 Filter Selectors Grid (Dynamic & Linked) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }} className={!showFiltersMobile ? 'desktop-only' : ''}>
 
             {/* 1 — Brand */}
             <div>
-              <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '700', marginBottom: '5px', display: 'block' }}>
+              <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '700', marginBottom: '4px', display: 'block' }}>
                 Brand / Make
               </label>
               <select value={brand} onChange={e => { setBrand(e.target.value); setModel('All'); }} style={selectStyle}>
@@ -467,7 +480,7 @@ export default function BuyerDashboard({ onEnquireAdmin }) {
               )}
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 290px), 1fr))', gap: '20px' }}>
               {filteredCars.map(c => (
                 <CarCard
                   key={c.id || c._id}
@@ -500,7 +513,7 @@ export default function BuyerDashboard({ onEnquireAdmin }) {
               </p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 290px), 1fr))', gap: '20px' }}>
               {wishlistedCars.map(c => (
                 <CarCard
                   key={c.id || c._id}
@@ -522,27 +535,18 @@ export default function BuyerDashboard({ onEnquireAdmin }) {
       {/* ── BUYER COMPLETE VEHICLE DETAILS MODAL ──────────────────────────── */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {viewingCar && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.85)',
-          backdropFilter: 'blur(10px)',
-          zIndex: 1300,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}>
+        <div className="modal-overlay">
           <div className="glass-panel" style={{
             width: '100%',
             maxWidth: '920px',
-            maxHeight: '92vh',
+            maxHeight: '90dvh',
             display: 'flex',
             flexDirection: 'column',
             borderRadius: '24px',
             overflow: 'hidden',
             boxShadow: '0 25px 60px rgba(0,0,0,0.8)',
-            border: '1px solid rgba(255, 255, 255, 0.15)'
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            overscrollBehavior: 'contain'
           }}>
             {/* Modal Header */}
             <div style={{

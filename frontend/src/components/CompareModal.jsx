@@ -18,29 +18,20 @@ export default function CompareModal({ selectedCars, onClose, onRemoveCar }) {
   ];
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0, 0, 0, 0.85)',
-      backdropFilter: 'blur(10px)',
-      zIndex: 1100,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
-    }}>
+    <div className="modal-overlay">
       <div className="glass-panel" style={{
         width: '100%',
         maxWidth: '900px',
-        maxHeight: '90vh',
+        maxHeight: '90dvh',
         overflowY: 'auto',
-        padding: '30px',
+        padding: 'clamp(18px, 3vw, 30px)',
         position: 'relative',
-        boxShadow: 'var(--shadow-lg)'
+        boxShadow: 'var(--shadow-lg)',
+        overscrollBehavior: 'contain'
       }}>
         <button 
           onClick={onClose}
-          style={{ position: 'absolute', right: '20px', top: '20px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+          style={{ position: 'absolute', right: '16px', top: '16px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
         >
           <X size={22} />
         </button>

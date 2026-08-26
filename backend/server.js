@@ -19,22 +19,39 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Connect Database (with automatic graceful fallback)
 connectDB();
 
-// API Routes
+// API Routes (supports both direct and /api prefixed routes)
 app.use('/api/auth', authRoutes);
-app.use('/api/cars', carRoutes);
-app.use('/api/seller', sellerRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/rentals', rentalRoutes);
-app.use('/api/chat', chatRoutes);
-app.use('/api/notifications', notificationRoutes);
+app.use('/auth', authRoutes);
 
-app.get('/api/health', (req, res) => {
+app.use('/api/cars', carRoutes);
+app.use('/cars', carRoutes);
+
+app.use('/api/seller', sellerRoutes);
+app.use('/seller', sellerRoutes);
+
+app.use('/api/admin', adminRoutes);
+app.use('/admin', adminRoutes);
+
+app.use('/api/rentals', rentalRoutes);
+app.use('/rentals', rentalRoutes);
+
+app.use('/api/chat', chatRoutes);
+app.use('/chat', chatRoutes);
+
+app.use('/api/notifications', notificationRoutes);
+app.use('/notifications', notificationRoutes);
+
+app.get(['/api/health', '/health', '/api', '/api/'], (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date(), service: 'CarHub Unified Portal API' });
 });
 
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
-  console.log(`====================================================`);
-  console.log(`🚀 CarHub Backend Server running on http://localhost:${PORT}`);
-  console.log(`====================================================`);
-});
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 5001;
+  app.listen(PORT, () => {
+    console.log(`====================================================`);
+    console.log(`🚀 CarHub Backend Server running on http://localhost:${PORT}`);
+    console.log(`====================================================`);
+  });
+}
+
+module.exports = app;

@@ -1,45 +1,8 @@
-# Dependencies
 node_modules/
-*/node_modules/
-
-# Production builds
+backend/node_modules/
+frontend/node_modules/
+.vercel
 dist/
-build/
-*/dist/
-*/build/
-
-# Environment variables
-.env
-.env.local
-.env.*.local
-*/.env
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+frontend/dist/
+.gradle/
 *.log
-
-# Editor directories and files
-.vscode/
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-.DS_Store
-
-# Android & Capacitor build outputs
-android/app/build/
-android/.gradle/
-android/build/
-android/captures/
-frontend/android/app/build/
-frontend/android/.gradle/
-frontend/android/build/
-*.apk
-*.aab
-
-# Local scratch / test files
-scratch/

@@ -12,27 +12,20 @@ export default function PriceTrend({ car, onClose }) {
   ];
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0, 0, 0, 0.85)',
-      backdropFilter: 'blur(10px)',
-      zIndex: 1100,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
-    }}>
+    <div className="modal-overlay">
       <div className="glass-panel" style={{
         width: '100%',
         maxWidth: '550px',
-        padding: '28px',
+        maxHeight: '90dvh',
+        overflowY: 'auto',
+        padding: 'clamp(18px, 3vw, 28px)',
         position: 'relative',
-        boxShadow: 'var(--shadow-lg)'
+        boxShadow: 'var(--shadow-lg)',
+        overscrollBehavior: 'contain'
       }}>
         <button 
           onClick={onClose}
-          style={{ position: 'absolute', right: '20px', top: '20px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+          style={{ position: 'absolute', right: '16px', top: '16px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
         >
           <X size={22} />
         </button>

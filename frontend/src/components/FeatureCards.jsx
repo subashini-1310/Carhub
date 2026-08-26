@@ -39,27 +39,27 @@ export default function FeatureCards({ onGetStarted }) {
   ];
 
   return (
-    <div style={{ margin: '40px 20px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '8px' }}>
+    <div style={{ margin: 'clamp(20px, 4vw, 40px) clamp(10px, 3vw, 20px)' }}>
+      <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+        <h2 style={{ fontSize: 'clamp(1.4rem, 4vw, 2rem)', fontWeight: '800', marginBottom: '8px', letterSpacing: '-0.5px' }}>
           How Would You Like to Use CarHub?
         </h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '600px', margin: '0 auto' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: 'clamp(0.85rem, 2vw, 0.95rem)', maxWidth: '600px', margin: '0 auto', lineHeight: 1.5 }}>
           Select an option below to explore our verified inventory, sell your vehicle to us, or rent for your next trip.
         </p>
       </div>
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '24px'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 290px), 1fr))',
+        gap: '20px'
       }}>
         {cards.map(card => (
           <div 
             key={card.role}
             className="glass-panel"
             style={{
-              padding: '30px',
+              padding: 'clamp(20px, 4vw, 30px)',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',

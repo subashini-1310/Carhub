@@ -48,6 +48,7 @@ export default function RenterDashboard({ onEnquireAdmin }) {
   const [maxKm, setMaxKm] = useState('all');
   const [transmission, setTransmission] = useState('All');
   const [search, setSearch] = useState('');
+  const [showFiltersMobile, setShowFiltersMobile] = useState(false);
 
   // ── View Details Modal state ─────────────────────────────────────────────
   const [viewingCar, setViewingCar] = useState(null);
@@ -362,48 +363,48 @@ export default function RenterDashboard({ onEnquireAdmin }) {
   };
 
   return (
-    <div style={{ padding: '24px 20px', maxWidth: '1280px', margin: '0 auto' }}>
+    <div style={{ padding: 'clamp(12px, 3vw, 20px)', maxWidth: '1280px', margin: '0 auto' }}>
 
       {/* ── Top Header Banner ────────────────────────────────────────────── */}
-      <div className="glass-panel" style={{ padding: '24px 28px', borderRadius: '20px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="glass-panel" style={{ padding: 'clamp(16px, 3vw, 24px)', borderRadius: '20px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <span style={{ background: '#3b82f6', color: '#fff', fontSize: '0.72rem', fontWeight: '800', padding: '2px 8px', borderRadius: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+            <span style={{ background: '#3b82f6', color: '#fff', fontSize: '0.7rem', fontWeight: '800', padding: '2px 8px', borderRadius: '4px' }}>
               SELF-DRIVE RENTALS
             </span>
-            <span style={{ color: '#10b981', fontSize: '0.82rem', fontWeight: '700' }}>
-              • Zero Security Deposit for Verified Users
+            <span style={{ color: '#10b981', fontSize: '0.78rem', fontWeight: '700' }}>
+              • Zero Security Deposit
             </span>
           </div>
-          <h2 style={{ fontSize: '1.65rem', fontWeight: '800', margin: 0 }}>CarHub Self-Drive Rental Fleet</h2>
-          <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+          <h2 style={{ fontSize: 'clamp(1.25rem, 3.5vw, 1.65rem)', fontWeight: '800', margin: 0 }}>Rental Fleet</h2>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.4 }}>
             140-point inspected, sanitised vehicles ready for daily or weekly self-drive rental.
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', width: '100%', maxWidth: 'max-content' }}>
           <button
             onClick={() => setActiveTab('fleet')}
             className={activeTab === 'fleet' ? 'btn-primary' : 'btn-secondary'}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 12px', fontSize: '0.8rem', minHeight: '36px' }}
           >
-            <Key size={16} /> Available Fleet ({availableCarsCount})
+            <Key size={15} /> Fleet ({availableCarsCount})
           </button>
           <button
             onClick={() => setActiveTab('history')}
             className={activeTab === 'history' ? 'btn-primary' : 'btn-secondary'}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 12px', fontSize: '0.8rem', minHeight: '36px' }}
           >
-            <Clock size={16} /> My Rental History ({bookings.length})
+            <Clock size={15} /> My Rentals ({bookings.length})
           </button>
         </div>
       </div>
 
       {bookingSuccess && (
-        <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', padding: '14px 18px', borderRadius: '12px', marginBottom: '20px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <CheckCircle2 size={20} />
+        <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', padding: '12px 16px', borderRadius: '12px', marginBottom: '18px', fontSize: '0.86rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CheckCircle2 size={18} />
             <span>{bookingSuccess}</span>
           </div>
           <button onClick={() => setBookingSuccess('')} style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer' }}>
@@ -416,13 +417,13 @@ export default function RenterDashboard({ onEnquireAdmin }) {
       {/* ── 9 DYNAMIC CASCADING FILTERS (FLEET VIEW) ───────────────────────── */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {activeTab === 'fleet' && (
-        <div className="glass-panel" style={{ padding: '20px 24px', borderRadius: '18px', marginBottom: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.96rem', fontWeight: '800' }}>
+        <div className="glass-panel" style={{ padding: 'clamp(14px, 3vw, 20px)', borderRadius: '18px', marginBottom: '22px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.94rem', fontWeight: '800' }}>
               <SlidersHorizontal size={18} color="#3b82f6" />
-              <span>Filter Rental Vehicles (9 Criteria)</span>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '500' }}>
-                — Showing {filteredFleet.length} vehicles
+              <span>Filter Rental Fleet</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '500' }}>
+                ({filteredFleet.length} vehicles)
               </span>
             </div>
 
@@ -430,23 +431,23 @@ export default function RenterDashboard({ onEnquireAdmin }) {
               <button
                 onClick={resetFilters}
                 className="btn-secondary"
-                style={{ padding: '6px 12px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)' }}
+                style={{ padding: '5px 10px', fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', minHeight: '32px' }}
               >
-                <X size={14} /> Reset All Filters
+                <X size={13} /> Reset Filters
               </button>
             )}
           </div>
 
           {/* Search bar */}
-          <div style={{ marginBottom: '16px', position: 'relative' }}>
+          <div style={{ marginBottom: '12px', position: 'relative' }}>
             <input
               type="text"
-              placeholder="Search rental fleet by brand, model or car title (e.g. Innova, Creta, Mahindra XUV)..."
+              placeholder="Search fleet by brand, model or car title…"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              style={{ ...selectStyle, padding: '10px 14px 10px 38px', fontSize: '0.88rem' }}
+              style={{ ...selectStyle, padding: '10px 14px 10px 36px', fontSize: '0.88rem' }}
             />
-            <span style={{ position: 'absolute', left: '12px', top: '11px', color: 'var(--text-muted)' }}>🔍</span>
+            <span style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--text-muted)' }}>🔍</span>
             {search && (
               <button onClick={() => setSearch('')} style={{ position: 'absolute', right: '12px', top: '10px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                 <X size={16} />
@@ -454,12 +455,24 @@ export default function RenterDashboard({ onEnquireAdmin }) {
             )}
           </div>
 
+          {/* Mobile Filters Toggle Button */}
+          <div className="mobile-only" style={{ marginBottom: '12px' }}>
+            <button 
+              onClick={() => setShowFiltersMobile(!showFiltersMobile)}
+              className="btn-secondary"
+              style={{ width: '100%', justifyContent: 'center', minHeight: '40px', fontSize: '0.84rem' }}
+            >
+              <SlidersHorizontal size={15} color="#3b82f6" />
+              {showFiltersMobile ? 'Hide Filters' : `Show All 9 Filters ${isAnyFilterActive ? '(Active)' : ''}`}
+            </button>
+          </div>
+
           {/* 9 Filter Dropdowns Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }} className={!showFiltersMobile ? 'desktop-only' : ''}>
             
             {/* 1. Brand (Cascading Parent) */}
             <div>
-              <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '700', marginBottom: '4px', display: 'block' }}>
+              <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '700', marginBottom: '4px', display: 'block' }}>
                 1. Brand / Make
               </label>
               <select value={brand} onChange={e => setBrand(e.target.value)} style={selectStyle}>
@@ -603,7 +616,7 @@ export default function RenterDashboard({ onEnquireAdmin }) {
               )}
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 290px), 1fr))', gap: '20px' }}>
               {filteredFleet.map(c => {
                 const rented = isCarRented(c);
                 const dailyPrice = Number(c.rentalPricePerDay || c.rentalRate || 2500);
@@ -915,27 +928,18 @@ export default function RenterDashboard({ onEnquireAdmin }) {
       {/* ── RENTAL VEHICLE VIEW DETAILS MODAL (ALL IMAGES & SPECS) ─────────── */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {viewingCar && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.85)',
-          backdropFilter: 'blur(10px)',
-          zIndex: 1300,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px'
-        }}>
+        <div className="modal-overlay">
           <div className="glass-panel" style={{
             width: '100%',
             maxWidth: '940px',
-            maxHeight: '92vh',
+            maxHeight: '90dvh',
             display: 'flex',
             flexDirection: 'column',
             borderRadius: '24px',
             overflow: 'hidden',
             boxShadow: '0 25px 60px rgba(0,0,0,0.8)',
-            border: '1px solid rgba(255, 255, 255, 0.15)'
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            overscrollBehavior: 'contain'
           }}>
             {/* Modal Header */}
             <div style={{
@@ -1262,8 +1266,8 @@ export default function RenterDashboard({ onEnquireAdmin }) {
       {/* ── BOOKING MODAL ──────────────────────────────────────────────────── */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {bookingCar && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', zIndex: 1400, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div className="glass-panel" style={{ width: '100%', maxWidth: '520px', padding: '28px', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
+        <div className="modal-overlay">
+          <div className="modal-card">
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
               <div>

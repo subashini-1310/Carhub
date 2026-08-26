@@ -40,8 +40,8 @@ export default function HeroCarousel() {
 
   return (
     <div className="glass-panel" style={{
-      margin: '20px',
-      height: '420px',
+      margin: 'clamp(10px, 2.5vw, 20px)',
+      minHeight: '360px',
       position: 'relative',
       overflow: 'hidden',
       borderRadius: '24px',
@@ -65,38 +65,38 @@ export default function HeroCarousel() {
             backgroundImage: `url(${slide.image})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            filter: 'brightness(0.55)'
+            filter: 'brightness(0.45)'
           }} />
           
           <div style={{
             position: 'absolute',
             inset: 0,
-            background: 'linear-gradient(to right, rgba(15, 23, 42, 0.95) 20%, rgba(15, 23, 42, 0.4) 100%)',
-            padding: '60px',
+            background: 'linear-gradient(to right, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.7) 60%, rgba(15, 23, 42, 0.3) 100%)',
+            padding: 'clamp(24px, 5vw, 60px)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            maxWidth: '650px'
+            maxWidth: '680px'
           }}>
-            <span className="badge badge-info" style={{ alignSelf: 'flex-start', marginBottom: '16px', fontSize: '0.8rem', padding: '6px 14px' }}>
-              <ShieldCheck size={14} style={{ display: 'inline', marginRight: '6px' }} />
+            <span className="badge badge-info" style={{ alignSelf: 'flex-start', marginBottom: '12px', fontSize: '0.75rem', padding: '5px 12px' }}>
+              <ShieldCheck size={13} style={{ display: 'inline', marginRight: '5px' }} />
               {slide.badge}
             </span>
 
-            <h2 style={{ fontSize: '2.4rem', fontWeight: '800', lineHeight: 1.2, marginBottom: '16px', color: '#ffffff' }}>
+            <h2 style={{ fontSize: 'clamp(1.35rem, 3.8vw, 2.2rem)', fontWeight: '800', lineHeight: 1.25, marginBottom: '12px', color: '#ffffff', letterSpacing: '-0.5px' }}>
               {slide.title}
             </h2>
 
-            <p style={{ fontSize: '1.05rem', color: '#cbd5e1', lineHeight: 1.5, marginBottom: '24px' }}>
+            <p style={{ fontSize: 'clamp(0.85rem, 1.8vw, 1rem)', color: '#cbd5e1', lineHeight: 1.5, marginBottom: '18px' }}>
               {slide.subtitle}
             </p>
 
-            <div style={{ display: 'flex', gap: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#93c5fd', fontSize: '0.85rem' }}>
-                <Wrench size={16} /> 140+ Points Checked
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#93c5fd', fontSize: '0.8rem', background: 'rgba(59, 130, 246, 0.15)', padding: '4px 10px', borderRadius: '8px' }}>
+                <Wrench size={14} /> 140+ Points Checked
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#93c5fd', fontSize: '0.85rem' }}>
-                <RefreshCw size={16} /> 7-Day Money Back Guarantee
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#93c5fd', fontSize: '0.8rem', background: 'rgba(59, 130, 246, 0.15)', padding: '4px 10px', borderRadius: '8px' }}>
+                <RefreshCw size={14} /> 7-Day Guarantee
               </div>
             </div>
           </div>
@@ -106,48 +106,52 @@ export default function HeroCarousel() {
       {/* Slide Navigation Controls */}
       <button 
         onClick={prevSlide}
+        aria-label="Previous slide"
         style={{
           position: 'absolute',
-          left: '20px',
+          left: '10px',
           top: '50%',
           transform: 'translateY(-50%)',
-          background: 'rgba(0, 0, 0, 0.5)',
+          background: 'rgba(0, 0, 0, 0.6)',
           border: '1px solid var(--border-color)',
           color: '#fff',
-          width: '44px',
-          height: '44px',
+          width: '38px',
+          height: '38px',
           borderRadius: '50%',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backdropFilter: 'blur(4px)'
+          backdropFilter: 'blur(6px)',
+          zIndex: 10
         }}
       >
-        <ChevronLeft size={24} />
+        <ChevronLeft size={20} />
       </button>
 
       <button 
         onClick={nextSlide}
+        aria-label="Next slide"
         style={{
           position: 'absolute',
-          right: '20px',
+          right: '10px',
           top: '50%',
           transform: 'translateY(-50%)',
-          background: 'rgba(0, 0, 0, 0.5)',
+          background: 'rgba(0, 0, 0, 0.6)',
           border: '1px solid var(--border-color)',
           color: '#fff',
-          width: '44px',
-          height: '44px',
+          width: '38px',
+          height: '38px',
           borderRadius: '50%',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backdropFilter: 'blur(4px)'
+          backdropFilter: 'blur(6px)',
+          zIndex: 10
         }}
       >
-        <ChevronRight size={24} />
+        <ChevronRight size={20} />
       </button>
 
       {/* Pagination Indicators */}

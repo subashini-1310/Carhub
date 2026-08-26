@@ -3,7 +3,11 @@ import { Car, ShieldCheck, MapPin, Phone, Mail, Clock, Award, CheckCircle2 } fro
 
 export default function Footer({ onNavigate }) {
   return (
-    <footer className="glass-panel" style={{ margin: '40px 20px 20px 20px', padding: '40px 30px', borderRadius: '24px' }}>
+    <footer className="glass-panel" style={{ 
+      margin: 'clamp(24px, 4vw, 40px) clamp(12px, 3vw, 20px) clamp(76px, 12vh, 24px) clamp(12px, 3vw, 20px)', 
+      padding: 'clamp(20px, 4vw, 40px) clamp(16px, 3vw, 30px)', 
+      borderRadius: '24px' 
+    }}>
       {/* Trust & Certification Banner */}
       <div style={{
         background: 'var(--bg-secondary)',
@@ -75,7 +79,6 @@ export default function Footer({ onNavigate }) {
             <li style={{ cursor: 'pointer' }} onClick={() => onNavigate('buyer')}>Browse Certified Cars</li>
             <li style={{ cursor: 'pointer' }} onClick={() => onNavigate('seller')}>Sell Your Vehicle</li>
             <li style={{ cursor: 'pointer' }} onClick={() => onNavigate('renter')}>Self-Drive Rentals</li>
-            <li style={{ cursor: 'pointer', color: '#f59e0b', fontWeight: '600' }} onClick={() => window.location.href = '/admin'}>🛡️ Admin Control Center</li>
           </ul>
         </div>
 

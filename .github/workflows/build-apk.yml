@@ -1,7 +1,9 @@
-name: Build CarHub Android APK & Release (Node.js 22)
+name: Build CarHub Android APK
 
 on:
   push:
+    branches: [ main, master ]
+  pull_request:
     branches: [ main, master ]
   workflow_dispatch:
 
@@ -10,61 +12,77 @@ permissions:
 
 jobs:
   build-apk:
-    name: Build Android APK
+    name: 🚀 Build & Generate Android APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install Frontend Dependencies
-        working-directory: ./frontend
-        run: npm install --legacy-peer-deps
-
-      - name: Build Web Application
-        working-directory: ./frontend
-        run: npm run build
-
-      - name: Sync Capacitor Android
-        working-directory: ./frontend
-        run: npx cap sync android
-
-      - name: Setup Java JDK 21
+      - name: ☕ Set up Java JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '17'
+          cache: 'gradle'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: 📱 Set up Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Build Android Debug APK
-        working-directory: ./frontend/android
+      - name: 🟢 Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 📦 Install Dependencies & Build Frontend
         run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          cd frontend
+          npm install
+          npm run build
 
-      - name: Upload Debug APK Artifact
+      - name: ⚡ Sync Capacitor Android Project
+        run: |
+          cd frontend
+          npx cap sync android
+
+      - name: 🔨 Grant Execute Permission for Gradle Wrapper
+        run: |
+          cd frontend/android
+          chmod +x gradlew
+
+      - name: 🚀 Build Android Debug APK
+        run: |
+          cd frontend/android
+          ./gradlew assembleDebug --stacktrace
+
+      - name: 📦 Upload APK Artifact (Download from GitHub Actions)
         uses: actions/upload-artifact@v4
         with:
           name: CarHub-Android-APK
           path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
+          retention-days: 30
 
-      - name: Create or Update GitHub Release with APK
+      - name: 🏷️ Release APK under GitHub Releases
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         uses: softprops/action-gh-release@v2
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        continue-on-error: true
         with:
-          tag_name: v1.0.0
-          name: "CarHub v1.0.0 Android APK"
-          body: "🚀 Automatic Android APK Build for CarHub platform.\n\nDownload the `app-debug.apk` asset below to install on your Android device."
+          tag_name: latest-apk
+          name: "🚗 CarHub Android APK (Download Latest)"
+          body: |
+            ## 📱 CarHub Mobile App for Android
+            
+            Download the official **CarHub Android APK** below and install it directly on your smartphone.
+            
+            ### 📥 Download:
+            - Click on **`app-debug.apk`** under Assets below to download.
+            
+            ### ⚙️ Installation Instructions:
+            1. Download `app-debug.apk` onto your phone.
+            2. Open the downloaded file and tap **Install** (Enable *"Install from unknown sources"* if prompted).
+            3. Enjoy CarHub natively on your phone!
           files: frontend/android/app/build/outputs/apk/debug/app-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-

@@ -42,7 +42,7 @@ export default function AIChatbot() {
   };
 
   return (
-    <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 1000 }}>
+    <div style={{ position: 'fixed', bottom: 'clamp(74px, 10vh, 24px)', right: 'clamp(12px, 3vw, 24px)', zIndex: 1000 }}>
       {!isOpen ? (
         <button 
           onClick={() => setIsOpen(true)}
@@ -52,26 +52,29 @@ export default function AIChatbot() {
             color: '#fff',
             border: 'none',
             borderRadius: '50px',
-            padding: '12px 20px',
+            padding: '10px 18px',
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
+            gap: '8px',
             fontWeight: '700',
             cursor: 'pointer',
-            boxShadow: '0 10px 25px rgba(59, 130, 246, 0.5)'
+            boxShadow: '0 10px 25px rgba(59, 130, 246, 0.5)',
+            fontSize: '0.86rem',
+            minHeight: '44px'
           }}
         >
-          <Bot size={22} />
-          <span>CarHub AI Assistant</span>
+          <Bot size={20} />
+          <span>CarHub AI</span>
         </button>
       ) : (
         <div className="glass-panel" style={{
-          width: '360px',
-          height: '480px',
+          width: 'min(92vw, 360px)',
+          height: 'clamp(380px, 65vh, 480px)',
           display: 'flex',
           flexDirection: 'column',
           boxShadow: 'var(--shadow-lg)',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          borderRadius: '18px'
         }}>
           {/* Chat Header */}
           <div style={{

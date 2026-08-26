@@ -248,16 +248,42 @@ function MainApp() {
 // ─── ROOT ────────────────────────────────────────────────────────────────────
 function AppRoot() {
   const [pathname, setPathname] = useState(window.location.pathname);
+  const [hostname, setHostname] = useState(window.location.hostname);
+  const [port, setPort] = useState(window.location.port);
+  const [search, setSearch] = useState(window.location.search);
+  const [hash, setHash] = useState(window.location.hash);
 
   useEffect(() => {
-    const handleLocationChange = () => setPathname(window.location.pathname);
+    const handleLocationChange = () => {
+      setPathname(window.location.pathname);
+      setHostname(window.location.hostname);
+      setPort(window.location.port);
+      setSearch(window.location.search);
+      setHash(window.location.hash);
+    };
     window.addEventListener('popstate', handleLocationChange);
-    return () => window.removeEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
   }, []);
 
-  const isAdminPath = pathname.startsWith('/admin');
+  // Multi-host and port detection:
+  // - Dedicated admin host / subdomain: admin.localhost or admin.yourdomain.com
+  // - Dedicated admin port: 3001, 5174, 8080
+  // - Dedicated route / parameters: /admin, /admin-login, ?portal=admin, ?admin=true, #admin
+  const isAdminHostOrRoute = 
+    hostname.toLowerCase().startsWith('admin.') ||
+    port === '3001' ||
+    port === '5174' ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/admin-login') ||
+    search.includes('portal=admin') ||
+    search.includes('admin=true') ||
+    hash.toLowerCase().includes('admin');
 
-  if (isAdminPath) {
+  if (isAdminHostOrRoute) {
     return (
       <ThemeProvider>
         <AuthProvider>

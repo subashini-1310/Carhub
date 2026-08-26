@@ -329,22 +329,23 @@ export default function SellerDashboard() {
   ];
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ padding: 'clamp(12px, 3vw, 20px)', maxWidth: '1200px', margin: '0 auto' }}>
       {/* Seller Header */}
-      <div className="glass-panel" style={{ padding: '24px', borderRadius: '16px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="glass-panel" style={{ padding: 'clamp(16px, 3vw, 24px)', borderRadius: '16px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
         <div>
-          <h2 style={{ fontSize: '1.6rem', fontWeight: '800' }}>Seller Dashboard</h2>
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+          <h2 style={{ fontSize: 'clamp(1.25rem, 3.5vw, 1.6rem)', fontWeight: '800' }}>Seller Dashboard</h2>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.4 }}>
             Welcome, <strong>{user?.name || 'Seller'}</strong>. Manage your vehicles & request CarHub doorstep inspection buyouts.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', width: '100%', maxWidth: 'max-content' }}>
           <button 
             onClick={() => setActiveTab('my_cars')}
             className={activeTab === 'my_cars' ? 'btn-primary' : 'btn-secondary'}
+            style={{ padding: '7px 12px', fontSize: '0.8rem', minHeight: '36px' }}
           >
-            <Car size={18} /> My Cars ({myCars.length})
+            <Car size={16} /> My Cars ({myCars.length})
           </button>
 
           <button 
@@ -354,15 +355,16 @@ export default function SellerDashboard() {
               setAiValidationError('');
             }}
             className={activeTab === 'post_car' ? 'btn-primary' : 'btn-secondary'}
+            style={{ padding: '7px 12px', fontSize: '0.8rem', minHeight: '36px' }}
           >
-            <PlusCircle size={18} /> Post Vehicle for Inspection
+            <PlusCircle size={16} /> Post Vehicle
           </button>
         </div>
       </div>
 
       {submitSuccess && (
-        <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', padding: '14px', borderRadius: '12px', marginBottom: '20px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <CheckCircle2 size={20} />
+        <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', padding: '12px 16px', borderRadius: '12px', marginBottom: '18px', fontSize: '0.86rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <CheckCircle2 size={18} />
           <span>{submitSuccess}</span>
         </div>
       )}
@@ -370,23 +372,23 @@ export default function SellerDashboard() {
       {/* ── TAB 1: MY CARS & INSPECTION STATUS ── */}
       {activeTab === 'my_cars' && (
         <div>
-          <div style={{ background: 'rgba(59, 130, 246, 0.1)', borderLeft: '4px solid #3b82f6', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', fontSize: '0.85rem' }}>
+          <div style={{ background: 'rgba(59, 130, 246, 0.1)', borderLeft: '4px solid #3b82f6', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', fontSize: '0.82rem', lineHeight: 1.4 }}>
             🔒 <strong>Security Guarantee:</strong> Your submitted vehicle is sent directly to CarHub Admin for verified doorstep inspection. It is never displayed to buyers until CarHub inspects and purchases the vehicle from you.
           </div>
 
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px' }}>Loading your cars...</div>
           ) : myCars.length === 0 ? (
-            <div className="glass-panel" style={{ textAlign: 'center', padding: '50px' }}>
+            <div className="glass-panel" style={{ textAlign: 'center', padding: '50px 20px', borderRadius: '16px' }}>
               <Car size={48} color="var(--text-muted)" style={{ marginBottom: '12px' }} />
               <h3>No Vehicles Posted Yet</h3>
-              <p style={{ color: 'var(--text-muted)', margin: '8px 0 20px 0' }}>Post your vehicle with clean photos to get an instant buyout quote from CarHub Admin.</p>
-              <button onClick={() => setActiveTab('post_car')} className="btn-primary">
-                <PlusCircle size={18} /> Post Your Vehicle Now
+              <p style={{ color: 'var(--text-muted)', margin: '8px 0 20px 0', fontSize: '0.88rem' }}>Post your vehicle with clean photos to get an instant buyout quote from CarHub Admin.</p>
+              <button onClick={() => setActiveTab('post_car')} className="btn-primary" style={{ padding: '10px 20px' }}>
+                <PlusCircle size={16} /> Post Your Vehicle Now
               </button>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 290px), 1fr))', gap: '20px' }}>
               {myCars.map(c => (
                 <div key={c.id || c._id} className="glass-panel" style={{ padding: '20px', borderRadius: '16px' }}>
                   <img 

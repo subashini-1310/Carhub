@@ -25,7 +25,8 @@ import {
   ChevronDown,
   Car,
   MoreVertical,
-  Volume2
+  Volume2,
+  ArrowLeft
 } from 'lucide-react';
 
 // Web Audio Call Sounds
@@ -92,8 +93,14 @@ export default function AdminChat({ isOpen, onClose, targetCar, chatPartner, ini
   const [selectedCarFilter, setSelectedCarFilter] = useState('all');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('all'); // 'all' | 'unread' | 'replied'
   const [showNotifBanner, setShowNotifBanner] = useState(true);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 768);
+  const [showMobileChat, setShowMobileChat] = useState(false);
 
-  // ── Call & Media Stream State ────────────────────────────────────────────
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [activeCall, setActiveCall] = useState(null); // 'audio' | 'video'
   const [callDuration, setCallDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
@@ -460,22 +467,12 @@ export default function AdminChat({ isOpen, onClose, targetCar, chatPartner, ini
   const tabsToDisplay = isUserAdmin ? adminTabs : buyerTabs;
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0, 0, 0, 0.82)',
-      backdropFilter: 'blur(10px)',
-      zIndex: 1400,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '16px'
-    }}>
+    <div className="modal-overlay">
       {/* ── Main WhatsApp Web Dark Container ────────────────────────────── */}
       <div style={{
         width: '100%',
         maxWidth: '1180px',
-        height: '90vh',
+        height: '92dvh',
         maxHeight: '780px',
         display: 'flex',
         borderRadius: '16px',
@@ -484,17 +481,18 @@ export default function AdminChat({ isOpen, onClose, targetCar, chatPartner, ini
         background: '#111b21',
         border: '1px solid rgba(255, 255, 255, 0.1)',
         color: '#e9edef',
-        fontFamily: 'Segoe UI, Helvetica Neue, Helvetica, Lucida Grande, Arial, sans-serif'
+        fontFamily: 'Segoe UI, Helvetica Neue, Helvetica, Lucida Grande, Arial, sans-serif',
+        overscrollBehavior: 'contain'
       }}>
 
         {/* ════════════════════════════════════════════════════════════════════ */}
         {/* ── LEFT SIDEBAR (Car Chat Threads List) ─────────────────────────── */}
         {/* ════════════════════════════════════════════════════════════════════ */}
         <div style={{
-          width: '380px',
-          minWidth: '320px',
-          borderRight: '1px solid #222d34',
-          display: 'flex',
+          width: isMobile ? '100%' : '380px',
+          minWidth: isMobile ? '0' : '320px',
+          borderRight: isMobile ? 'none' : '1px solid #222d34',
+          display: (isMobile && showMobileChat) ? 'none' : 'flex',
           flexDirection: 'column',
           background: '#111b21'
         }}>
@@ -744,6 +742,7 @@ export default function AdminChat({ isOpen, onClose, targetCar, chatPartner, ini
                     onClick={() => {
                       setActiveCarId(String(thread.carId));
                       setActiveThread(thread);
+                      setShowMobileChat(true);
                     }}
                     style={{
                       display: 'flex',
@@ -886,7 +885,7 @@ export default function AdminChat({ isOpen, onClose, targetCar, chatPartner, ini
         {/* ════════════════════════════════════════════════════════════════════ */}
         <div style={{
           flex: 1,
-          display: 'flex',
+          display: (isMobile && !showMobileChat) ? 'none' : 'flex',
           flexDirection: 'column',
           background: '#0b141a',
           position: 'relative'
@@ -903,12 +902,21 @@ export default function AdminChat({ isOpen, onClose, targetCar, chatPartner, ini
             borderBottom: '1px solid #222d34',
             zIndex: 10
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+              {isMobile && (
+                <button 
+                  onClick={() => setShowMobileChat(false)}
+                  style={{ background: 'none', border: 'none', color: '#8696a0', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
+                  title="Back to conversation list"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+              )}
               {activeThread?.carImage && (
                 <img
                   src={activeThread.carImage}
                   alt={isUserAdmin ? (activeThread.buyerName || 'Buyer') : activeThread.carTitle}
-                  style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.15)' }}
+                  style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.15)' }}
                 />
               )}
               <div style={{ minWidth: 0 }}>

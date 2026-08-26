@@ -657,36 +657,36 @@ USB Compatibility: ${info.usbCompatibility || 'Yes'}`;
 
   // ── Main render ──────────────────────────────────────────────────────────
   return (
-    <div style={{ padding: '20px', maxWidth: '1300px', margin: '0 auto' }}>
+    <div style={{ padding: 'clamp(12px, 3vw, 20px)', maxWidth: '1300px', margin: '0 auto' }}>
       {/* Header */}
-      <div className="glass-panel" style={{ padding: '24px', borderRadius: '20px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+      <div className="glass-panel" style={{ padding: 'clamp(16px, 3vw, 24px)', borderRadius: '20px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <ShieldCheck size={24} color="#f59e0b" />
-            <h2 style={{ fontSize: '1.6rem', fontWeight: '800' }}>CarHub Admin Command Center</h2>
+            <ShieldCheck size={22} color="#f59e0b" />
+            <h2 style={{ fontSize: 'clamp(1.25rem, 3.5vw, 1.6rem)', fontWeight: '800' }}>Admin Command Center</h2>
           </div>
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.4 }}>
             Inspection Queue · Direct Buyouts · Marketplace Publishing · Live Communication
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', width: '100%', maxWidth: 'max-content' }}>
           <button
             onClick={() => fetchData(true)}
             className="btn-secondary"
-            style={{ padding: '9px 14px', fontSize: '0.82rem' }}
+            style={{ padding: '7px 12px', fontSize: '0.8rem', minHeight: '36px' }}
             disabled={refreshing}
           >
-            <RefreshCw size={15} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
+            <RefreshCw size={14} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
             {refreshing ? 'Refreshing...' : 'Refresh'}
           </button>
           {onOpenAdminChat && (
             <button
               onClick={onOpenAdminChat}
               className="btn-primary"
-              style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
+              style={{ background: 'linear-gradient(135deg, #10b981, #059669)', padding: '7px 14px', fontSize: '0.8rem', minHeight: '36px' }}
             >
-              <MessageSquare size={18} /> Open Live Chat
+              <MessageSquare size={16} /> Live Chat
             </button>
           )}
         </div>
@@ -697,40 +697,40 @@ USB Compatibility: ${info.usbCompatibility || 'Yes'}`;
       `}</style>
 
       {/* ── Summary Cards ─────────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '14px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: '12px', marginBottom: '20px' }}>
         {[
-          { label: 'Pending Queue',    val: pendingCars.length,     color: '#f59e0b', icon: <Clock size={22} /> },
-          { label: 'Cars For Sale',    val: carsForSale.length,     color: '#10b981', icon: <ShoppingBag size={22} /> },
-          { label: 'Rental Fleet',     val: carsForRent.length,     color: '#3b82f6', icon: <Key size={22} /> },
-          { label: 'Rental Requests',  val: pendingRentalCount,     color: '#ec4899', icon: <Calendar size={22} /> },
-          { label: 'Inquiries & Chats',val: chatThreads.length,     color: '#8b5cf6', icon: <MessageSquare size={22} /> },
-          { label: 'Total Inventory',  val: allCars.length,         color: '#a855f7', icon: <Car size={22} /> },
+          { label: 'Pending Queue',    val: pendingCars.length,     color: '#f59e0b', icon: <Clock size={20} /> },
+          { label: 'Cars For Sale',    val: carsForSale.length,     color: '#10b981', icon: <ShoppingBag size={20} /> },
+          { label: 'Rental Fleet',     val: carsForRent.length,     color: '#3b82f6', icon: <Key size={20} /> },
+          { label: 'Rental Requests',  val: pendingRentalCount,     color: '#ec4899', icon: <Calendar size={20} /> },
+          { label: 'Inquiries & Chats',val: chatThreads.length,     color: '#8b5cf6', icon: <MessageSquare size={20} /> },
+          { label: 'Total Inventory',  val: allCars.length,         color: '#a855f7', icon: <Car size={20} /> },
         ].map(s => (
-          <div key={s.label} className="glass-panel" style={{ padding: '16px 18px', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div key={s.label} className="glass-panel" style={{ padding: '14px 16px', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ color: s.color }}>{s.icon}</div>
             <div>
-              <div style={{ fontSize: '1.6rem', fontWeight: '900', color: s.color, lineHeight: 1 }}>{s.val}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>{s.label}</div>
+              <div style={{ fontSize: '1.45rem', fontWeight: '900', color: s.color, lineHeight: 1 }}>{s.val}</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>{s.label}</div>
             </div>
           </div>
         ))}
       </div>
 
       {/* ── Navigation Tabs ───────────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '24px', paddingBottom: '4px' }}>
-        <TabBtn id="pending"  label="Pending Inspections" icon={<Clock size={16} />}       count={pendingCars.length} />
-        <TabBtn id="for_sale" label="Cars For Sale"        icon={<ShoppingBag size={16} />} count={carsForSale.length} />
-        <TabBtn id="for_rent" label="Rental Fleet"         icon={<Key size={16} />}         count={carsForRent.length} />
-        <TabBtn id="rentals"  label="Rental Bookings"      icon={<Calendar size={16} />}    count={pendingRentalCount} />
-        <TabBtn id="chats"    label="Inquiries & Chats"    icon={<MessageSquare size={16} />} count={chatThreads.length} />
-        <TabBtn id="users"    label="User Management"      icon={<Users size={16} />}       count={users.length} />
-        <TabBtn id="reports"  label="Reports & Analytics"  icon={<BarChart3 size={16} />} />
+      <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '20px', paddingBottom: '6px', WebkitOverflowScrolling: 'touch' }}>
+        <TabBtn id="pending"  label="Pending Inspections" icon={<Clock size={15} />}       count={pendingCars.length} />
+        <TabBtn id="for_sale" label="Cars For Sale"        icon={<ShoppingBag size={15} />} count={carsForSale.length} />
+        <TabBtn id="for_rent" label="Rental Fleet"         icon={<Key size={15} />}         count={carsForRent.length} />
+        <TabBtn id="rentals"  label="Rental Bookings"      icon={<Calendar size={15} />}    count={pendingRentalCount} />
+        <TabBtn id="chats"    label="Inquiries & Chats"    icon={<MessageSquare size={15} />} count={chatThreads.length} />
+        <TabBtn id="users"    label="User Management"      icon={<Users size={15} />}       count={users.length} />
+        <TabBtn id="reports"  label="Reports & Analytics"  icon={<BarChart3 size={15} />} />
       </div>
 
       {/* ── TAB: PENDING INSPECTIONS ──────────────────────────────────── */}
       {activeTab === 'pending' && (
         <div>
-          <div style={{ background: 'rgba(245, 158, 11, 0.1)', borderLeft: '4px solid #f59e0b', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', fontSize: '0.85rem' }}>
+          <div style={{ background: 'rgba(245, 158, 11, 0.1)', borderLeft: '4px solid #f59e0b', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', fontSize: '0.82rem', lineHeight: 1.4 }}>
             ⚡ <strong>Admin Action Required:</strong> These cars were submitted by sellers with detailed specifications, location map markers, and 5 angle photos. Click <strong>View</strong> to inspect full details, <strong>AI Diagnostics</strong> for inspection scans, or <strong>Buy & Publish</strong> to make them live.
           </div>
 
@@ -740,13 +740,13 @@ USB Compatibility: ${info.usbCompatibility || 'Yes'}`;
               <p>Loading pending inspection queue…</p>
             </div>
           ) : pendingCars.length === 0 ? (
-            <div className="glass-panel" style={{ textAlign: 'center', padding: '60px' }}>
+            <div className="glass-panel" style={{ textAlign: 'center', padding: '60px 20px', borderRadius: '16px' }}>
               <CheckCircle2 size={52} color="#10b981" style={{ marginBottom: '12px' }} />
               <h3 style={{ fontWeight: '800', marginBottom: '8px' }}>Queue Clear!</h3>
               <p style={{ color: 'var(--text-muted)' }}>All submitted vehicles have been inspected and processed.</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 290px), 1fr))', gap: '20px' }}>
               {pendingCars.map(c => {
                 const distNum = c.distanceKm || (c.distance ? parseInt(c.distance) : 6);
                 return (
@@ -859,7 +859,7 @@ USB Compatibility: ${info.usbCompatibility || 'Yes'}`;
               <p style={{ color: 'var(--text-muted)' }}>Buy & Publish vehicles from the Pending Inspections tab to list them here.</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 290px), 1fr))', gap: '20px' }}>
               {carsForSale.map(c => <CarCardSale key={c.id || c._id} c={c} />)}
             </div>
           )}
@@ -872,13 +872,13 @@ USB Compatibility: ${info.usbCompatibility || 'Yes'}`;
           {loading ? (
             <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)' }}>Loading…</div>
           ) : carsForRent.length === 0 ? (
-            <div className="glass-panel" style={{ textAlign: 'center', padding: '60px' }}>
+            <div className="glass-panel" style={{ textAlign: 'center', padding: '60px 20px', borderRadius: '16px' }}>
               <Key size={52} color="#64748b" style={{ marginBottom: '12px' }} />
               <h3>Rental Fleet is Empty</h3>
               <p style={{ color: 'var(--text-muted)' }}>Publish vehicles to the Rental Fleet via Buy & Publish.</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 290px), 1fr))', gap: '20px' }}>
               {carsForRent.map(c => <CarCardRent key={c.id || c._id} c={c} />)}
             </div>
           )}
@@ -1412,8 +1412,8 @@ USB Compatibility: ${info.usbCompatibility || 'Yes'}`;
       {/* ── MODAL 1: VIEW FULL DETAILS MODAL (ALL SELLER DETAILS & IMAGES) ─ */}
       {/* ══════════════════════════════════════════════════════════════════ */}
       {viewingCar && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div className="glass-panel" style={{ width: '100%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto', padding: '30px', borderRadius: '20px', border: '1px solid rgba(59,130,246,0.3)', position: 'relative' }}>
+        <div className="modal-overlay">
+          <div className="glass-panel" style={{ width: '100%', maxWidth: '850px', maxHeight: '90dvh', overflowY: 'auto', padding: 'clamp(18px, 3vw, 30px)', borderRadius: '20px', border: '1px solid rgba(59,130,246,0.3)', position: 'relative', overscrollBehavior: 'contain' }}>
             
             {/* Modal Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', borderBottom: '1px solid var(--border-color)', paddingBottom: '14px' }}>
@@ -1671,8 +1671,8 @@ USB Compatibility: ${info.usbCompatibility || 'Yes'}`;
       {/* ── MODAL 2: AI INSPECTOR SCAN MODAL ──────────────────────────── */}
       {/* ══════════════════════════════════════════════════════════════════ */}
       {inspectingCar && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div style={{ width: '100%', maxWidth: '650px' }}>
+        <div className="modal-overlay">
+          <div style={{ width: '100%', maxWidth: '650px', maxHeight: '90dvh', overflowY: 'auto' }}>
             <AIInspector car={inspectingCar} />
             <button onClick={() => setInspectingCar(null)} className="btn-secondary" style={{ width: '100%', justifyContent: 'center', marginTop: '12px' }}>
               Close AI Suite
@@ -1685,8 +1685,8 @@ USB Compatibility: ${info.usbCompatibility || 'Yes'}`;
       {/* ── MODAL 3: ENHANCED BUY & PUBLISH MODAL (EDITING & STRUCTURED) ─ */}
       {/* ══════════════════════════════════════════════════════════════════ */}
       {publishingCar && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div className="glass-panel" style={{ width: '100%', maxWidth: '780px', maxHeight: '90vh', overflowY: 'auto', padding: '30px', borderRadius: '20px', border: '1px solid rgba(245,158,11,0.3)' }}>
+        <div className="modal-overlay">
+          <div className="glass-panel" style={{ width: '100%', maxWidth: '780px', maxHeight: '90dvh', overflowY: 'auto', padding: 'clamp(18px, 3vw, 30px)', borderRadius: '20px', border: '1px solid rgba(245,158,11,0.3)', overscrollBehavior: 'contain' }}>
 
             {/* Modal Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>

@@ -59,8 +59,8 @@ export default function AuthModal({ isOpen, onClose, defaultRole = 'Buyer / Rent
   const { loginUser } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   
-  // Normalize initial role so Buyer or Renter maps to Buyer / Renter
-  const normalizedDefaultRole = (defaultRole === 'Buyer' || defaultRole === 'Renter') ? 'Buyer / Renter' : defaultRole;
+  // Normalize initial role so public modal only allows Buyer / Renter or Seller
+  const normalizedDefaultRole = (defaultRole === 'Seller') ? 'Seller' : 'Buyer / Renter';
   const [selectedRole, setSelectedRole] = useState(normalizedDefaultRole);
   
   const [name, setName] = useState('');
@@ -68,7 +68,6 @@ export default function AuthModal({ isOpen, onClose, defaultRole = 'Buyer / Rent
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [adminCode, setAdminCode] = useState('');
   const [city, setCity] = useState('Chennai');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -92,7 +91,7 @@ export default function AuthModal({ isOpen, onClose, defaultRole = 'Buyer / Rent
   });
 
   useEffect(() => {
-    const norm = (defaultRole === 'Buyer' || defaultRole === 'Renter') ? 'Buyer / Renter' : defaultRole;
+    const norm = (defaultRole === 'Seller') ? 'Seller' : 'Buyer / Renter';
     setSelectedRole(norm);
   }, [defaultRole]);
 
@@ -174,8 +173,7 @@ export default function AuthModal({ isOpen, onClose, defaultRole = 'Buyer / Rent
 
   const roleSentences = {
     'Buyer / Renter': "Single customer account with access to BOTH buying certified cars & renting self-drive vehicles.",
-    'Seller': "Post your vehicle for doorstep inspection. Receive instant cash buyout offer from CarHub Admin.",
-    'Admin': "Executive management portal for inspection verification, pricing control, and platform dispatch."
+    'Seller': "Post your vehicle for doorstep inspection. Receive instant cash buyout offer from CarHub team."
   };
 
   const handleSubmit = async (e) => {
@@ -190,111 +188,97 @@ export default function AuthModal({ isOpen, onClose, defaultRole = 'Buyer / Rent
       if (!password) {
         throw new Error('Please enter your password.');
       }
-      if (selectedRole === 'Admin' && adminCode && adminCode !== 'admin123') {
-        throw new Error("Invalid Admin Code! Enter 'admin123'");
-      }
 
       if (isLogin) {
         const res = await api.login(email.trim(), password, selectedRole);
         loginUser(res.user, rememberMe);
-        if (res.user.role === 'Admin') {
-          const storage = rememberMe ? localStorage : sessionStorage;
-          storage.setItem('carhub_admin_token', res.token);
-          storage.setItem('carhub_admin_user', JSON.stringify(res.user));
-        }
         onSuccessRole(res.user.role);
         onClose();
       } else {
         if (!name || !name.trim()) {
           throw new Error('Please enter your full name.');
         }
-        if (selectedRole === 'Admin' && adminCode !== 'admin123') {
-          throw new Error("Invalid Admin Code! Enter 'admin123'");
-        }
         const res = await api.register({
           name: name.trim(),
           email: email.trim(),
           password: password,
           role: selectedRole,
-          adminCode: adminCode || 'admin123',
           city
         });
         loginUser(res.user, rememberMe);
-        if (res.user.role === 'Admin') {
-          const storage = rememberMe ? localStorage : sessionStorage;
-          storage.setItem('carhub_admin_token', res.token);
-          storage.setItem('carhub_admin_user', JSON.stringify(res.user));
-        }
         onSuccessRole(res.user.role);
         onClose();
       }
     } catch (err) {
-      setError(err.message || 'Authentication error');
+      setError(err.message || 'Authentication failed.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0, 0, 0, 0.75)',
-      backdropFilter: 'blur(8px)',
-      zIndex: 1000,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
-    }}>
+    <div className="modal-overlay">
       <div className="glass-panel" style={{
         width: '100%',
-        maxWidth: '480px',
-        padding: '32px',
+        maxWidth: '440px',
+        maxHeight: '90dvh',
+        overflowY: 'auto',
+        padding: 'clamp(20px, 4vw, 32px)',
+        borderRadius: '24px',
         position: 'relative',
-        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)'
+        boxShadow: 'var(--shadow-xl)',
+        border: '1px solid var(--border-color)',
+        animation: 'fadeIn 0.2s ease-out',
+        overscrollBehavior: 'contain'
       }}>
         {/* Close Button */}
         <button 
           onClick={onClose}
-          style={{ position: 'absolute', right: '20px', top: '20px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+          style={{
+            position: 'absolute',
+            right: '20px',
+            top: '20px',
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-muted)',
+            cursor: 'pointer'
+          }}
         >
-          <X size={22} />
+          <X size={20} />
         </button>
 
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '1.6rem', fontWeight: '800' }}>
-            {isLogin ? 'Welcome Back to CarHub' : 'Create Your CarHub Account'}
+          <h2 style={{ fontSize: '1.6rem', fontWeight: '800', marginBottom: '6px' }}>
+            {isLogin ? 'Welcome Back' : 'Create Account'}
           </h2>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
             Select your account type to proceed
           </p>
         </div>
 
-        {/* Role Selector Tabs */}
+        {/* Role Selector Tabs (Only Customer Roles: Buyer / Renter and Seller) */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: 'repeat(2, 1fr)',
           gap: '8px',
           background: 'var(--bg-secondary)',
           padding: '4px',
           borderRadius: '12px',
           marginBottom: '20px'
         }}>
-          {['Buyer / Renter', 'Seller', 'Admin'].map(r => (
+          {['Buyer / Renter', 'Seller'].map(r => (
             <button
               key={r}
               type="button"
               onClick={() => {
                 setSelectedRole(r);
-                if (r === 'Admin' && !adminCode) setAdminCode('admin123');
                 setError('');
               }}
               style={{
                 padding: '10px 4px',
                 borderRadius: '8px',
                 border: 'none',
-                fontSize: '0.8rem',
+                fontSize: '0.82rem',
                 fontWeight: '700',
                 cursor: 'pointer',
                 background: selectedRole === r ? 'var(--accent-primary)' : 'transparent',
@@ -404,28 +388,6 @@ export default function AuthModal({ isOpen, onClose, defaultRole = 'Buyer / Rent
               </button>
             </div>
           </div>
-
-          {selectedRole === 'Admin' && (
-            <div>
-              <label style={{ fontSize: '0.8rem', color: '#f59e0b', fontWeight: '700', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <ShieldCheck size={14} /> Admin Security Authorization Key
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Lock size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#f59e0b' }} />
-                <input 
-                  type="password" 
-                  placeholder="admin123" 
-                  value={adminCode} 
-                  onChange={e => setAdminCode(e.target.value)} 
-                  required 
-                  style={{ width: '100%', padding: '10px 12px 10px 38px', borderRadius: '8px', border: '1px solid #f59e0b', background: 'rgba(245,158,11,0.08)', color: 'var(--text-main)', fontSize: '0.9rem' }} 
-                />
-              </div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                Default administrative security key: <strong style={{ color: '#f59e0b' }}>admin123</strong>
-              </div>
-            </div>
-          )}
 
           {/* Remember Me */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>

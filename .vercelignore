@@ -1,0 +1,8 @@
+.git
+.github
+.env.local
+.DS_Store
+android/
+capacitor/
+*.log
+scratch/
