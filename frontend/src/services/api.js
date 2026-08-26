@@ -292,29 +292,33 @@ export const api = {
     const deletedIds = new Set(getDeletedCarIds());
     const isNotDeleted = (c) => !deletedIds.has(String(c.id)) && !deletedIds.has(String(c._id));
 
-    // Try backend first
+    // Try backend first (MongoDB collection via API)
     try {
       const res = await fetch(`${API_BASE}/cars/buyer`);
       if (res.ok) {
         const data = await res.json();
-        // Merge with any locally published cars (for offline mode)
-        const localPublished = getPublishedCars().filter(isNotDeleted);
-        const backendIds = data.map(c => String(c.id || c._id));
-        const extra = localPublished.filter(c => {
-          const isEligible = c.status === 'for_sale' || c.status === 'sale_and_rent' || c.status === 'both' || c.targetMarket === 'buyer' || c.targetMarket === 'both';
-          return isEligible && !backendIds.includes(String(c.id || c._id));
-        });
-        return [...data, ...extra].filter(isNotDeleted);
+        if (Array.isArray(data)) {
+          // Merge with any admin published cars stored locally in offline mode
+          const localPublished = getPublishedCars().filter(isNotDeleted);
+          const backendIds = data.map(c => String(c.id || c._id));
+          const extra = localPublished.filter(c => {
+            const isEligible = (c.status === 'for_sale' || c.status === 'sale_and_rent') && (c.targetMarket === 'buyer' || c.targetMarket === 'both');
+            return isEligible && !backendIds.includes(String(c.id || c._id));
+          });
+          return [...data, ...extra].filter(isNotDeleted).filter(c => 
+            (c.status === 'for_sale' || c.status === 'sale_and_rent') && (c.targetMarket === 'buyer' || c.targetMarket === 'both')
+          );
+        }
       }
     } catch (e) {}
 
-    // Offline fallback: seed cars + any admin-published cars
+    // Offline fallback: ONLY admin-published cars (never unapproved seller cars)
     const published = getPublishedCars().filter(isNotDeleted);
     const publishedIds = published.map(c => String(c.id || c._id));
     const seedForBuyer = mockSeedCars
       .filter(isNotDeleted)
-      .filter(c => (c.status === 'for_sale' || c.status === 'sale_and_rent' || c.status === 'both' || c.targetMarket === 'buyer' || c.targetMarket === 'both') && !publishedIds.includes(String(c.id)));
-    return [...seedForBuyer, ...published.filter(c => c.status === 'for_sale' || c.status === 'sale_and_rent' || c.status === 'both' || c.targetMarket === 'buyer' || c.targetMarket === 'both')].filter(isNotDeleted);
+      .filter(c => (c.status === 'for_sale' || c.status === 'sale_and_rent') && (c.targetMarket === 'buyer' || c.targetMarket === 'both') && !publishedIds.includes(String(c.id)));
+    return [...seedForBuyer, ...published.filter(c => (c.status === 'for_sale' || c.status === 'sale_and_rent') && (c.targetMarket === 'buyer' || c.targetMarket === 'both'))].filter(isNotDeleted);
   },
 
   // ── RENTER CARS ───────────────────────────────────────────
@@ -326,13 +330,17 @@ export const api = {
       const res = await fetch(`${API_BASE}/cars/renter`);
       if (res.ok) {
         const data = await res.json();
-        const localPublished = getPublishedCars().filter(isNotDeleted);
-        const backendIds = data.map(c => String(c.id || c._id));
-        const extra = localPublished.filter(c => {
-          const isEligible = c.status === 'for_rent' || c.status === 'sale_and_rent' || c.status === 'both' || c.targetMarket === 'renter' || c.targetMarket === 'both';
-          return isEligible && !backendIds.includes(String(c.id || c._id));
-        });
-        return [...data, ...extra].filter(isNotDeleted);
+        if (Array.isArray(data)) {
+          const localPublished = getPublishedCars().filter(isNotDeleted);
+          const backendIds = data.map(c => String(c.id || c._id));
+          const extra = localPublished.filter(c => {
+            const isEligible = (c.status === 'for_rent' || c.status === 'sale_and_rent') && (c.targetMarket === 'renter' || c.targetMarket === 'both');
+            return isEligible && !backendIds.includes(String(c.id || c._id));
+          });
+          return [...data, ...extra].filter(isNotDeleted).filter(c => 
+            (c.status === 'for_rent' || c.status === 'sale_and_rent') && (c.targetMarket === 'renter' || c.targetMarket === 'both')
+          );
+        }
       }
     } catch (e) {}
 
@@ -340,8 +348,8 @@ export const api = {
     const publishedIds = published.map(c => String(c.id || c._id));
     const seedForRent = mockSeedCars
       .filter(isNotDeleted)
-      .filter(c => (c.status === 'for_rent' || c.status === 'sale_and_rent' || c.status === 'both' || c.targetMarket === 'renter' || c.targetMarket === 'both') && !publishedIds.includes(String(c.id)));
-    return [...seedForRent, ...published.filter(c => c.status === 'for_rent' || c.status === 'sale_and_rent' || c.status === 'both' || c.targetMarket === 'renter' || c.targetMarket === 'both')].filter(isNotDeleted);
+      .filter(c => (c.status === 'for_rent' || c.status === 'sale_and_rent') && (c.targetMarket === 'renter' || c.targetMarket === 'both') && !publishedIds.includes(String(c.id)));
+    return [...seedForRent, ...published.filter(c => (c.status === 'for_rent' || c.status === 'sale_and_rent') && (c.targetMarket === 'renter' || c.targetMarket === 'both'))].filter(isNotDeleted);
   },
 
   // ── SELLER SUBMIT CAR ─────────────────────────────────────

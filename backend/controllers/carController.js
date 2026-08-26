@@ -24,10 +24,8 @@ const getCarsForBuyer = async (req, res) => {
     let mongoCars = [];
     try {
       mongoCars = await Car.find({
-        $or: [
-          { status: { $in: ['for_sale', 'sale_and_rent', 'both'] } },
-          { targetMarket: { $in: ['buyer', 'both'] } }
-        ]
+        status: { $in: ['for_sale', 'sale_and_rent'] },
+        targetMarket: { $in: ['buyer', 'both'] }
       }).lean();
     } catch (e) {}
 
@@ -37,7 +35,13 @@ const getCarsForBuyer = async (req, res) => {
       if (c.id) mongoIds.add(String(c.id));
     });
 
-    const memCars = inMemoryCars.filter(c => isBuyerCar(c) && !mongoIds.has(String(c._id)) && !mongoIds.has(String(c.id)));
+    const memCars = inMemoryCars.filter(c => 
+      (c.status === 'for_sale' || c.status === 'sale_and_rent') && 
+      (c.targetMarket === 'buyer' || c.targetMarket === 'both') && 
+      !mongoIds.has(String(c._id)) && 
+      !mongoIds.has(String(c.id))
+    );
+
     const merged = [...mongoCars, ...memCars].filter(c => 
       !deletedCarIds.has(String(c.id)) && !deletedCarIds.has(String(c._id))
     );
@@ -53,10 +57,8 @@ const getCarsForRenter = async (req, res) => {
     let mongoCars = [];
     try {
       mongoCars = await Car.find({
-        $or: [
-          { status: { $in: ['for_rent', 'sale_and_rent', 'both'] } },
-          { targetMarket: { $in: ['renter', 'both'] } }
-        ]
+        status: { $in: ['for_rent', 'sale_and_rent'] },
+        targetMarket: { $in: ['renter', 'both'] }
       }).lean();
     } catch (e) {}
 
@@ -66,7 +68,13 @@ const getCarsForRenter = async (req, res) => {
       if (c.id) mongoIds.add(String(c.id));
     });
 
-    const memCars = inMemoryCars.filter(c => isRenterCar(c) && !mongoIds.has(String(c._id)) && !mongoIds.has(String(c.id)));
+    const memCars = inMemoryCars.filter(c => 
+      (c.status === 'for_rent' || c.status === 'sale_and_rent') && 
+      (c.targetMarket === 'renter' || c.targetMarket === 'both') && 
+      !mongoIds.has(String(c._id)) && 
+      !mongoIds.has(String(c.id))
+    );
+
     const merged = [...mongoCars, ...memCars].filter(c => 
       !deletedCarIds.has(String(c.id)) && !deletedCarIds.has(String(c._id))
     );
